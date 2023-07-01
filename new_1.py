@@ -4,6 +4,12 @@ import matplotlib.pyplot as plt
 import algorithmx
 from algorithmx.networkx import add_graph
 
+from path_finding import path_find
+
+
+weights_inf = {'#': 1, 'd': 1, 'f': 1, '@': 2, 'v': 2, 't': 1}
+weights_track = {'#': 1.5, 'd': 1, 'f': 1.75, '@': 9000, 'v': 9000, 't': 1}
+
 
 def map_to_massive(file_name):
     """Открывает файл
@@ -16,10 +22,6 @@ def map_to_massive(file_name):
             x = line.rstrip('\n')
             m.append(list(x))
     return m
-
-
-weights_inf = {'#': 1, 'd': 1, 'f': 1, '@': 2, 'v': 2, 't': 1}
-weights_track = {'#': 1.5, 'd': 1, 'f': 1.5, '@': 9000, 'v': 9000, 't': 1}
 
 
 def massive_to_graph(massive, weights):
@@ -38,25 +40,13 @@ def massive_to_graph(massive, weights):
                                   str(i + k_i) + '.' + str(j + k_j),
                                   max(weights[massive[i][j]], weights[massive[i + k_i][j + k_j]]))
                                  )
-
-    #g_inf.add_nodes_from(nodes_list)
     g_inf.add_weighted_edges_from(edges)
-
-    def draw_in_browser():
-        server = algorithmx.http_server(port=5050)
-        canvas = server.canvas()
-
-        def start():
-            add_graph(canvas, g_inf)
-        canvas.onmessage('start', start)
-        server.start()  # http://localhost:5050/
-
-    draw_in_browser()
+    return g_inf
 
 
 def massive_to_graph_to_helicopter(massive):
     """Для helicopter все веса == 1"""
-    g_inf = nx.Graph()
+    g_heli = nx.Graph()
     edges = []
     len_massive = len(massive)
     len_line = len(massive[0])
@@ -68,27 +58,33 @@ def massive_to_graph_to_helicopter(massive):
                                   str(i + k_i) + '.' + str(j + k_j),
                                   1)
                                  )
-    g_inf.add_weighted_edges_from(edges)
+    g_heli.add_weighted_edges_from(edges)
+    return g_heli
 
 
 file_name1 = "map_1.txt"
+
 map_massive = map_to_massive(file_name1)
+graph = massive_to_graph(map_massive, weights_track)
 
-#massive_to_graph(map_massive, weights_inf)
-massive_to_graph(map_massive, weights_track)
-#massive_to_graph_to_helicopter(map_massive,)
+start = '0.1'
+finish = '0.16'
+
+path = path_find(start, finish, graph, points=22)
+print(path)
 
 
-"""
-Работает, но выглядит очень плохо
-def draw():
-    g_inf.add_nodes_from(nodes)
-    g_inf.add_weighted_edges_from(edges)
-    plt.figure()
-    pos = nx.spring_layout(g_inf)
-    weight_labels = nx.get_edge_attributes(g_inf, 'weight')
-    nx.draw(g_inf, pos, font_color='white', node_shape='s', with_labels=True, )
-    nx.draw_networkx_edge_labels(g_inf, pos, edge_labels=weight_labels)
-    plt.show()
-draw()
-"""
+def draw_in_browser(graph):
+    """Рисование графа в браузере
+    http://localhost:5050/"""
+    server = algorithmx.http_server(port=5050)
+    canvas = server.canvas()
+
+    def start():
+        add_graph(canvas, graph)
+
+    canvas.onmessage('start', start)
+    server.start()
+
+
+#draw_in_browser(graph)

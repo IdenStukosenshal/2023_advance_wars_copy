@@ -1,17 +1,17 @@
-import heapq
+
 import networkx as nx
 import matplotlib.pyplot as plt
 import algorithmx
 from algorithmx.networkx import add_graph
 
 
-def map_to_massive():
+def map_to_massive(file_name):
     """Открывает файл
     Возвращает массив с картой.
     карта должна быть с нечётными длинами сторон
     """
     m = []
-    with open("map_1.txt") as f:
+    with open(file_name) as f:
         for line in f:
             x = line.rstrip('\n')
             m.append(list(x))
@@ -30,8 +30,8 @@ def massive_to_graph(massive, weights):
     edges = []
     len_massive = len(massive)
     len_line = len(massive[0])
-    for i in range(0, len_massive, 2):
-        for j in range(0, len_line, 2):  # формирование массива edges = [('a', 'b', weight)]
+    for i in range(0, len_massive, 1):
+        for j in range(0, len_line, 1):  # формирование массива edges = [('a', 'b', weight)]
             for k_i, k_j in ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)):
                 if 0 <= i + k_i < len_massive and 0 <= j + k_j < len_line:
                     edges.append((str(i) + '.' + str(j),
@@ -60,8 +60,8 @@ def massive_to_graph_to_helicopter(massive):
     edges = []
     len_massive = len(massive)
     len_line = len(massive[0])
-    for i in range(0, len_massive, 2):
-        for j in range(0, len_line, 2):  # формирование массива edges = [('a', 'b', weight)]
+    for i in range(0, len_massive, 1):
+        for j in range(0, len_line, 1):  # формирование массива edges = [('a', 'b', weight)]
             for k_i, k_j in ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)):
                 if 0 <= i + k_i < len_massive and 0 <= j + k_j < len_line:
                     edges.append((str(i) + '.' + str(j),
@@ -71,7 +71,8 @@ def massive_to_graph_to_helicopter(massive):
     g_inf.add_weighted_edges_from(edges)
 
 
-map_massive = map_to_massive()
+file_name1 = "map_1.txt"
+map_massive = map_to_massive(file_name1)
 
 #massive_to_graph(map_massive, weights_inf)
 massive_to_graph(map_massive, weights_track)

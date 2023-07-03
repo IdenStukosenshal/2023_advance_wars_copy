@@ -1,16 +1,37 @@
-# This is a sample Python script.
+import pygame
+from pygame.sprite import Group
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+from settings import Settings
+import game_function_1
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+settings_obj = Settings()
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+def vidiya_game():
+
+    pygame.init()
+    screen = pygame.display.set_mode((settings_obj.screen_w, settings_obj.screen_h))
+    pygame.display.set_caption('CooL_ViDiYa_GaMe')
+    clock = pygame.time.Clock()
+
+    map_elements = Group()
+
+    file_name = "map_1.txt"
+    game_function_1.create_map(file_name, settings_obj, screen, map_elements)
+
+
+
+    while True:
+        clock.tick(settings_obj.fps)
+
+        game_function_1.check_events()
+
+        #screen.fill((217, 245, 254))
+
+        game_function_1.update_screen(map_elements,)
+
+        pygame.display.flip()
+
+
+vidiya_game()
+

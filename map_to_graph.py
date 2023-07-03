@@ -1,8 +1,9 @@
-
+"""Этот модуль получает карту из файла и строит по ней взвешенный граф"""
 import networkx as nx
 import matplotlib.pyplot as plt
 import algorithmx
 from algorithmx.networkx import add_graph
+
 
 from path_finding import path_find
 
@@ -11,10 +12,9 @@ weights_inf = {'#': 1, 'd': 1, 'f': 1, '@': 2, 'v': 2, 't': 1}
 weights_track = {'#': 1.5, 'd': 1, 'f': 1.75, '@': 9000, 'v': 9000, 't': 1}
 
 
-def map_to_massive(file_name):
+def file_map_to_massive(file_name):
     """Открывает файл
     Возвращает массив с картой.
-    карта должна быть с нечётными длинами сторон
     """
     m = []
     with open(file_name) as f:
@@ -27,6 +27,9 @@ def map_to_massive(file_name):
 def massive_to_graph(massive, weights):
     """Принимает массив, nodes, weights
     Возвращает взвешенный граф
+    nodes типа 0.0, 0.1,
+     где первое число это y(номер строки), второе х(номер столбца)
+
      """
     g_inf = nx.Graph()
     edges = []
@@ -62,16 +65,10 @@ def massive_to_graph_to_helicopter(massive):
     return g_heli
 
 
+'''
 file_name1 = "map_1.txt"
-
-map_massive = map_to_massive(file_name1)
+map_massive = file_map_to_massive(file_name1)
 graph = massive_to_graph(map_massive, weights_track)
-
-start = '0.1'
-finish = '0.16'
-
-path = path_find(start, finish, graph, points=22)
-print(path)
 
 
 def draw_in_browser(graph):
@@ -87,4 +84,13 @@ def draw_in_browser(graph):
     server.start()
 
 
-#draw_in_browser(graph)
+def test_path_finding():
+    start = '0.1'
+    finish = '1.15'
+    path = path_find(start, finish, graph, points=22)
+    print(path)
+
+
+test_path_finding()
+draw_in_browser(graph)
+'''

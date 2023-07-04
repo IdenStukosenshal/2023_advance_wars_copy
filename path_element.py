@@ -11,4 +11,5 @@ class PathElement(Sprite):
 
     def draw_path(self):
         #self.screen.blit( )
-        pygame.draw.lines(self.screen, (255, 255, 255), False, self.path_massive, 3)
+        if len(self.path_massive) > 1 and self.path_massive[0] != self.path_massive[1]:
+            pygame.draw.lines(self.screen, (255, 255, 255), False, self.path_massive, 3)

@@ -1,9 +1,5 @@
-"""Этот модуль получает карту из файла и строит по ней взвешенный граф"""
-import networkx as nx
-import matplotlib.pyplot as plt
-import algorithmx
-from algorithmx.networkx import add_graph
 
+import networkx as nx
 
 weights_inf = {'#': 1, 'd': 1, 'f': 1, '@': 2, 'v': 2, 't': 1}
 weights_track = {'#': 1.5, 'd': 1, 'f': 1.75, '@': 9000, 'v': 9000, 't': 1}
@@ -94,6 +90,10 @@ def path_find(start, finish, graph, points=10):
 
 
 '''
+Визуализация графа в браузере, чтобы использовать нужно установить algorithmx
+import algorithmx
+from algorithmx.networkx import add_graph
+
 file_name1 = "map_1.txt"
 map_massive = file_map_to_massive(file_name1)
 graph = massive_to_graph(map_massive, weights_track)

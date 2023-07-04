@@ -7,18 +7,17 @@ from path_element import PathElement
 from ramka import Ramka
 
 
-def check_events(ramka_obj,):
+def check_events(ramka_obj, start_experim):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
         elif event.type == pygame.KEYDOWN:
-            check_key_down_events(event, ramka_obj, )
+            check_key_down_events(event, ramka_obj, start_experim)
         elif event.type == pygame.KEYUP:
             check_key_up_events(event, ramka_obj, )
 
 
-
-def check_key_down_events(event, ramka_obj, ):
+def check_key_down_events(event, ramka_obj, start_experim):
     if event.key == pygame.K_RIGHT:
         ramka_obj.move_right = True
     if event.key == pygame.K_LEFT:
@@ -27,6 +26,13 @@ def check_key_down_events(event, ramka_obj, ):
         ramka_obj.move_up = True
     if event.key == pygame.K_DOWN:
         ramka_obj.move_down = True
+
+    if event.key == pygame.K_SPACE:
+        start_experim.append(ramka_obj.y_x_to_graph)
+        ramka_obj.path_drawing_allowed = True
+
+    if event.key == pygame.K_BACKSPACE:
+        ramka_obj.path_drawing_allowed = False
 
 
 def check_key_up_events(event, ramka_obj, ):
@@ -62,11 +68,11 @@ def create_map(map_massive, settings_obj, screen, map_elements):
 
 def create_path(start, finish, map_massive, screen, settings_obj):
     """Получает словарь весов, graph, start, finish, points
-
+    Передаёт  функции massive_to_graph массив и получает граф.
     Передаёт фукции path_find аргументы, получает от неё путь в str формате, преобразовывает в int,
     И создаёт объект линии на основе пути
 
-    По идее, граф должен строиться где-то вне, при выборе юнита"""
+    По идее, граф должен строиться где-то вне, при выборе юнита, там же получая веса"""
 
     weights_track = {'#': 1.5, 'd': 1, 'f': 1.75, '@': 9000, 'v': 9000, 't': 1.25} # тестовые данные
 

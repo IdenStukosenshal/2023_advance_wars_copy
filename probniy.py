@@ -2,10 +2,6 @@
 
 
 import networkx as nx
-import matplotlib.pyplot as plt
-import algorithmx
-from algorithmx.networkx import add_graph
-from path_finding import path_find
 
 weights_inf = {'#': 1, 'd': 1, 'f': 1, '@': 2, 'v': 2, 't': 1}
 weights_track = {'#': 1.5, 'd': 1, 'f': 1.75, '@': 9000, 'v': 9000, 't': 1}
@@ -51,25 +47,3 @@ file_name1 = "map_1.txt"
 
 map_massive = map_to_massive(file_name1)
 graph = massive_to_graph(map_massive, weights_track)
-
-start = '1.0'
-finish = '16.0'
-
-path = path_find(start, finish, graph, points=22)
-print(path)
-
-
-def draw_in_browser(graph):
-    """Рисование графа в браузере
-    http://localhost:5050/"""
-    server = algorithmx.http_server(port=5050)
-    canvas = server.canvas()
-
-    def start():
-        add_graph(canvas, graph)
-
-    canvas.onmessage('start', start)
-    server.start()
-
-
-draw_in_browser(graph)

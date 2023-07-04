@@ -60,7 +60,7 @@ def create_map(map_massive, settings_obj, screen, map_elements):
             map_elements.add(new_element)
 
 
-def create_path(map_massive, screen, settings_obj):
+def create_path(start, finish, map_massive, screen, settings_obj):
     """Получает словарь весов, graph, start, finish, points
 
     Передаёт фукции path_find аргументы, получает от неё путь в str формате, преобразовывает в int,
@@ -69,9 +69,8 @@ def create_path(map_massive, screen, settings_obj):
     По идее, граф должен строиться где-то вне, при выборе юнита"""
 
     weights_track = {'#': 1.5, 'd': 1, 'f': 1.75, '@': 9000, 'v': 9000, 't': 1.25} # тестовые данные
-    start = '0.1'
-    finish = '2.14'
-    points = 30
+
+    points = 1000000
     graph = map_to_graph.massive_to_graph(map_massive, weights_track)
 
     path = map_to_graph.path_find(start, finish, graph, points)

@@ -7,18 +7,17 @@ from path_element import PathElement
 from ramka import Ramka
 
 
-def check_events(ramka_obj,):
+def check_events(ramka_obj, start_experim):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
         elif event.type == pygame.KEYDOWN:
-            check_key_down_events(event, ramka_obj, )
+            check_key_down_events(event, ramka_obj, start_experim)
         elif event.type == pygame.KEYUP:
             check_key_up_events(event, ramka_obj, )
 
 
-
-def check_key_down_events(event, ramka_obj, ):
+def check_key_down_events(event, ramka_obj, start_experim):
     if event.key == pygame.K_RIGHT:
         ramka_obj.move_right = True
     if event.key == pygame.K_LEFT:
@@ -27,6 +26,13 @@ def check_key_down_events(event, ramka_obj, ):
         ramka_obj.move_up = True
     if event.key == pygame.K_DOWN:
         ramka_obj.move_down = True
+
+    if event.key == pygame.K_SPACE:
+        start_experim.append(ramka_obj.y_x_to_graph)
+        ramka_obj.path_drawing_allowed = True
+
+    if event.key == pygame.K_BACKSPACE:
+        ramka_obj.path_drawing_allowed = False
 
 
 def check_key_up_events(event, ramka_obj, ):

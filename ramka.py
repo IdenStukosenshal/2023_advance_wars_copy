@@ -25,6 +25,8 @@ class Ramka(Sprite):
         self.y_x_to_graph = str(y // self.spr_razm) + '.' + str(x // self.spr_razm)
         # Преобразование координат к виду 'y.x' Для работы с графом, начальные координаты
 
+        self.path_drawing_allowed = False
+
 
     def draw_ramka(self):
         self.screen.blit(self.ramka, self.rect)

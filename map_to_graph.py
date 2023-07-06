@@ -1,4 +1,3 @@
-
 import networkx as nx
 
 weights_inf = {'#': 1, 'd': 1, 'f': 1, '@': 2, 'v': 2, 't': 1}
@@ -6,7 +5,7 @@ weights_track = {'#': 1.5, 'd': 1, 'f': 1.75, '@': 9000, 'v': 9000, 't': 1}
 
 
 def file_map_to_massive(file_name):
-    """Открывает файл
+    """Открывает файл.
     Возвращает массив с картой.
     """
     m = []
@@ -29,11 +28,11 @@ def massive_to_graph(massive, weights):
     len_massive = len(massive)
     len_line = len(massive[0])
     for i in range(0, len_massive, 1):
-        for j in range(0, len_line, 1):  # формирование массива edges = [('a', 'b', weight)]
+        for j in range(0, len_line, 1):  # формирование массива edges = [( (y,x), (y,x), weight ), ]
             for k_i, k_j in ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)):
                 if 0 <= i + k_i < len_massive and 0 <= j + k_j < len_line:
-                    edges.append((str(i) + '.' + str(j),
-                                  str(i + k_i) + '.' + str(j + k_j),
+                    edges.append(((i, j),
+                                  (i + k_i, j + k_j),
                                   max(weights[massive[i][j]], weights[massive[i + k_i][j + k_j]]))
                                  )
     g_inf.add_weighted_edges_from(edges)
@@ -50,8 +49,8 @@ def massive_to_graph_to_helicopter(massive):
         for j in range(0, len_line, 1):  # формирование массива edges = [('a', 'b', weight)]
             for k_i, k_j in ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)):
                 if 0 <= i + k_i < len_massive and 0 <= j + k_j < len_line:
-                    edges.append((str(i) + '.' + str(j),
-                                  str(i + k_i) + '.' + str(j + k_j),
+                    edges.append(((i, j),
+                                  (i + k_i, j + k_j),
                                   1)
                                  )
     g_heli.add_weighted_edges_from(edges)
@@ -68,12 +67,13 @@ def path_find(start, finish, graph, points=10):
     """
     # соседи 0.0  ->   {'0.1': {'weight': 9000}, '1.0': {'weight': 9000}, '1.1': {'weight': 9000}}
     # s = g_inf.adj['0.0']
-    # вес ребра = G[1][2]['weight']
+    # вес ребра = G[node1][node2]['weight']
 
-    shortest_path = nx.astar_path(graph, start, finish)  # алгоритм A*  результат вида ['0.1', '1.2', '1.3']
+    shortest_path = nx.astar_path(graph, start, finish)  # алгоритм A*  результат вида [(0, 1), (1, 2), (1, 3), ]
 
     def len_path(path_list):
-        """проходим по списку nodes и суммируем вес рёбер
+        """
+        проходим по списку nodes и суммируем вес рёбер
         Это лучше, чем ещё раз считать функцией
         nx.dijkstra_path_length(graph, start, finish)"""
         len_p = 0
@@ -88,9 +88,8 @@ def path_find(start, finish, graph, points=10):
         return None
     return shortest_path
 
-
 '''
-Визуализация графа в браузере, чтобы использовать нужно установить algorithmx
+# Визуализация графа в браузере, чтобы использовать нужно установить algorithmx
 import algorithmx
 from algorithmx.networkx import add_graph
 
@@ -113,8 +112,8 @@ def draw_in_browser(graph):
 
 
 def test_path_finding():
-    start = '0.1'
-    finish = '1.15'
+    start = (0, 1)
+    finish = (1, 15)
     path = path_find(start, finish, graph, points=22)
     print(path)
 

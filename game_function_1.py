@@ -6,17 +6,18 @@ from map_element import MapElement
 from path_element import PathElement
 
 
-def check_events(ramka_obj):
+def check_events(screen, settings_obj, ramka_obj, path_s, graph):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
         elif event.type == pygame.KEYDOWN:
-            check_key_down_events(event, ramka_obj)
+            check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, graph)
         elif event.type == pygame.KEYUP:
             check_key_up_events(event, ramka_obj, )
 
 
-def check_key_down_events(event, ramka_obj):
+def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, graph):
+
     if event.key == pygame.K_RIGHT:
         ramka_obj.move_right = True
     if event.key == pygame.K_LEFT:
@@ -27,12 +28,31 @@ def check_key_down_events(event, ramka_obj):
         ramka_obj.move_down = True
 
     if event.key == pygame.K_SPACE:
-        ramka_obj.start_experim = ramka_obj.y_x_to_graph
-        ramka_obj.path_drawing_allowed = True
+        if ramka_obj.path_changing_allowed is False:
+            ramka_obj.path_changing_allowed = True
+            ramka_obj.start_experim = ramka_obj.y_x_to_graph
+            path_line = PathElement(screen, settings_obj)
+            path_s.add(path_line)
+            ramka_obj.link_to_current_path = path_line  # сохранить ссылку на текущий объект в объекте рамки, костыль?
+        else:
+            ramka_obj.path_changing_allowed = False
 
-    if event.key == pygame.K_BACKSPACE:
-        ramka_obj.path_drawing_allowed = False
+    ramka_obj.update()  # дополнительное обновление позиции, чтобы она не отставала
 
+    peres4et_puti(settings_obj, ramka_obj, graph)
+
+
+def peres4et_puti(settings_obj, ramka_obj, graph):
+    start = ramka_obj.start_experim
+    finish = ramka_obj.y_x_to_graph
+    path_list = create_path(start, finish, graph)  # path_list в виде масива nodes
+    rez_path_massive = []
+    for y, x in path_list:
+        y = y * settings_obj.w_and_h_sprite_map + settings_obj.w_and_h_sprite_map//2
+        x = x * settings_obj.w_and_h_sprite_map + settings_obj.w_and_h_sprite_map//2
+        rez_path_massive.append((x, y))
+    if ramka_obj.path_changing_allowed:
+        ramka_obj.link_to_current_path.list_path = rez_path_massive
 
 def check_key_up_events(event, ramka_obj, ):
     if event.key == pygame.K_RIGHT:
@@ -64,39 +84,28 @@ def create_map(map_massive, settings_obj, screen, map_elements):
             map_elements.add(new_element)
 
 
-def create_path(start, finish, map_massive, screen, settings_obj):
-    """Получает start, finish, map_massive.
-    Передаёт функции massive_to_graph массив и получает граф.
+def create_path(start, finish, graph):
+    """Получает start, finish, graph.
+
     Передаёт фукции path_find аргументы, получает от неё путь в формате [(y, x), (y, x)],
      где (y, x) - это название node и её координаты.
+     Возвращает путь
 
-    Создаёт объект линии на основе обработанного массива координат.
-
-    По идее, граф должен строиться где-то вне, при выборе юнита, там же получая веса!
-    Также нужно отделить рисование пути от его вычисления для его перерисовки при перемещении юнита!
     """
 
-    weights_track = {'#': 1.5, 'd': 1, 'f': 1.75, '@': 9000, 'v': 9000, 't': 1.25} # тестовые данные
-
     points = 1000000
-    graph = map_to_graph.massive_to_graph(map_massive, weights_track)
+
     path = map_to_graph.path_find(start, finish, graph, points)
+    return path
 
 
-
-    rez_path_massive = []
-    for y, x in path:
-        y = y * settings_obj.w_and_h_sprite_map + settings_obj.w_and_h_sprite_map//2
-        x = x * settings_obj.w_and_h_sprite_map + settings_obj.w_and_h_sprite_map//2
-        rez_path_massive.append((x, y))
-    path_line = PathElement(rez_path_massive, screen)
-    path_line.draw_path()
-
-
-def update_screen(screen, map_elements, ramka_obj):
+def update_screen(screen, map_elements, ramka_obj, path_s):
     #for map_elem in map_elements.sprites():
         #map_elem.draw_map()
+    # path_s.draw(screen)
     map_elements.draw(screen)
+    for path in path_s.sprites():
+        path.draw_path()
     ramka_obj.draw_ramka()
 
 

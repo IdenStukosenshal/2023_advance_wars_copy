@@ -25,7 +25,8 @@ class Ramka(Sprite):
         self.y_x_to_graph = ((y // self.spr_razm), (x // self.spr_razm))  # текущая координата
         self.start_experim = self.y_x_to_graph  # эксперимент, стартовая точка-атрибут рамки
 
-        self.path_drawing_allowed = False
+        self.path_changing_allowed = False
+        self.link_to_current_path = None
 
 
     def draw_ramka(self):

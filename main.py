@@ -7,7 +7,6 @@ import map_to_graph
 from ramka import Ramka
 
 
-
 def vidiya_game():
     settings_obj = Settings()
 
@@ -21,19 +20,22 @@ def vidiya_game():
     map_massive = map_to_graph.file_map_to_massive(file_name)
     game_function_1.create_map(map_massive, settings_obj, screen, map_elements)  # добавляет элементы карты в группу
 
+    weights_track = {'#': 1.5, 'd': 1, 'f': 1.75, '@': 9000, 'v': 9000, 't': 1.25}
+    graph = map_to_graph.massive_to_graph(map_massive, weights_track)
+
+    """Веса и граф должны быть получены в зависимости от выбранного юнита
+    Связать с функцией check_events в будущем"""
+
     ramka_obj = Ramka(64, 64, settings_obj, screen)
+
+    path_s = Group()
 
     while True:
 
         clock.tick(settings_obj.fps)
-        game_function_1.check_events(ramka_obj)
         ramka_obj.update()
-        game_function_1.update_screen(screen, map_elements, ramka_obj)
-
-        finish = ramka_obj.y_x_to_graph
-        start = ramka_obj.start_experim
-        if ramka_obj.path_drawing_allowed:
-            game_function_1.create_path(start, finish, map_massive, screen, settings_obj)
+        game_function_1.check_events(screen, settings_obj, ramka_obj, path_s, graph)
+        game_function_1.update_screen(screen, map_elements, ramka_obj, path_s)
 
         pygame.display.flip()
 
@@ -41,5 +43,5 @@ def vidiya_game():
 vidiya_game()
 
 """Управление:
-Перемещение рамки на стрелочки, поставить стартовую точку - SPACE, отменить - Backspace.
+Перемещение рамки на стрелочки, поставить стартовую точку - SPACE, поставить конечную точку - тоже SPACE .
 После установки стартовой точки можно наблюдать построение путей в зависимости от положения рамки"""

@@ -19,22 +19,18 @@ def vidiya_game():
     map_massive = map_to_graph.file_map_to_massive(file_name)
     game_function_1.create_map(map_massive, settings_obj, screen, map_elements)
 
-    ramka_obj = Ramka(0, 0, settings_obj, screen)
-
-    #start = '0.1'
-
-    start_experim = []
+    ramka_obj = Ramka(64, 64, settings_obj, screen)
 
     while True:
 
         clock.tick(settings_obj.fps)
-        game_function_1.check_events(ramka_obj, start_experim)
+        game_function_1.check_events(ramka_obj)
         ramka_obj.update()
         game_function_1.update_screen(map_elements, ramka_obj)
 
         finish = ramka_obj.y_x_to_graph
-        if start_experim and ramka_obj.path_drawing_allowed:
-            game_function_1.create_path(start_experim[-1], finish, map_massive, screen, settings_obj)
+        if ramka_obj.path_drawing_allowed:
+            game_function_1.create_path(ramka_obj.start_experim, finish, map_massive, screen, settings_obj)
 
         pygame.display.flip()
 

@@ -4,20 +4,19 @@ import sys
 import map_to_graph
 from map_element import MapElement
 from path_element import PathElement
-from ramka import Ramka
 
 
-def check_events(ramka_obj, start_experim):
+def check_events(ramka_obj):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
         elif event.type == pygame.KEYDOWN:
-            check_key_down_events(event, ramka_obj, start_experim)
+            check_key_down_events(event, ramka_obj)
         elif event.type == pygame.KEYUP:
             check_key_up_events(event, ramka_obj, )
 
 
-def check_key_down_events(event, ramka_obj, start_experim):
+def check_key_down_events(event, ramka_obj):
     if event.key == pygame.K_RIGHT:
         ramka_obj.move_right = True
     if event.key == pygame.K_LEFT:
@@ -28,7 +27,7 @@ def check_key_down_events(event, ramka_obj, start_experim):
         ramka_obj.move_down = True
 
     if event.key == pygame.K_SPACE:
-        start_experim.append(ramka_obj.y_x_to_graph)
+        ramka_obj.start_experim = ramka_obj.y_x_to_graph
         ramka_obj.path_drawing_allowed = True
 
     if event.key == pygame.K_BACKSPACE:
@@ -62,15 +61,15 @@ def create_map(map_massive, settings_obj, screen, map_elements):
             y = i * settings_obj.w_and_h_sprite_map
 
             new_element = MapElement(x, y, map_massive[i][j], screen)
-
             map_elements.add(new_element)
 
 
 def create_path(start, finish, map_massive, screen, settings_obj):
-    """Получает словарь весов, graph, start, finish, points
-    Передаёт  функции massive_to_graph массив и получает граф.
-    Передаёт фукции path_find аргументы, получает от неё путь в str формате, преобразовывает в int,
-    И создаёт объект линии на основе пути
+    """Получает start, finish, map_massive
+    Передаёт функции massive_to_graph массив и получает граф.
+    Передаёт фукции path_find аргументы, получает от неё путь в формате [(y, x), (y, x)],
+     где (y, x) - это название node и её координаты.
+    Создаёт объект линии на основе пути
 
     По идее, граф должен строиться где-то вне, при выборе юнита, там же получая веса"""
 
@@ -81,13 +80,12 @@ def create_path(start, finish, map_massive, screen, settings_obj):
 
     path = map_to_graph.path_find(start, finish, graph, points)
     rez_path_massive = []
-    for yx in path:
-        yx = yx.split('.')
-        y = int(yx[0]) * settings_obj.w_and_h_sprite_map + settings_obj.w_and_h_sprite_map//2
-        x = int(yx[1]) * settings_obj.w_and_h_sprite_map + settings_obj.w_and_h_sprite_map//2
+    for y, x in path:
+        y = y * settings_obj.w_and_h_sprite_map + settings_obj.w_and_h_sprite_map//2
+        x = x * settings_obj.w_and_h_sprite_map + settings_obj.w_and_h_sprite_map//2
         rez_path_massive.append((x, y))
-    path_line = PathElement(rez_path_massive, screen)
 
+    path_line = PathElement(rez_path_massive, screen)
     path_line.draw_path()
 
 

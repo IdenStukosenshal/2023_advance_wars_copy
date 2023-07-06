@@ -22,10 +22,11 @@ class Ramka(Sprite):
 
         self.spr_razm = self.settings_obj.w_and_h_sprite_map  # Для краткости
 
-        self.y_x_to_graph = str(y // self.spr_razm) + '.' + str(x // self.spr_razm)
-        # Преобразование координат к виду 'y.x' Для работы с графом, начальные координаты
+        self.y_x_to_graph = ( (y // self.spr_razm), (x // self.spr_razm) )
+        # Преобразование координат к виду (y, x) Для работы с графом, начальные координаты
 
         self.path_drawing_allowed = False
+        self.start_experim = self.y_x_to_graph  # эксперимент, стартовая точка-атрибут рамки
 
 
     def draw_ramka(self):
@@ -36,19 +37,24 @@ class Ramka(Sprite):
         if self.move_left and self.rect.left > 0:
             self.rect.centerx -= self.spr_razm
             self.move_left = False
+            self._update_coordinate()
         if self.move_right and self.rect.right < self.settings_obj.screen_w:
             self.rect.centerx += self.spr_razm
             self.move_right = False
+            self._update_coordinate()
 
         if self.move_up and self.rect.top > 0:
             self.rect.centery -= self.spr_razm
             self.move_up = False
+            self._update_coordinate()
         if self.move_down and self.rect.bottom < self.settings_obj.screen_h:
             self.rect.centery += self.spr_razm
             self.move_down = False
+            self._update_coordinate()
 
-        self.y_x_to_graph = str((self.rect.centery-self.spr_razm//2) // self.spr_razm) + '.' + str(
-            (self.rect.centerx-self.spr_razm//2) // self.spr_razm)  # Это вычисляется каждый раз, нужно перенести
+    def _update_coordinate(self):
+        """Преобразование координат к виду (y, x) Для работы с графом.
+        Вызывается только в момент изменения координат"""
+        self.y_x_to_graph = ( (self.rect.y // self.spr_razm), (self.rect.x // self.spr_razm) )
 
-        # Преобразование координат к виду 'y.x' Для работы с графом
 

@@ -59,7 +59,7 @@ def massive_to_graph_to_helicopter(massive):
     return g_heli
 
 
-def path_find(start, finish, graph, points=10):
+def path_find(start, finish, graph):
     """
     :param points: кол-во очков пути юнита
     :param start: стартовая node
@@ -87,10 +87,21 @@ def path_find(start, finish, graph, points=10):
             r += 1
         return len_p
 
-    if len_path(shortest_path) > points:
-        return None
     print("путь пересчитан: ", shortest_path, "Длина пути=: ", len_path(shortest_path))
     return shortest_path
+
+
+def get_allowed_oblast(graph, start, points):
+    """Формируем словарь разрешённых для посещения точек"""
+    oblast_rez = dict()
+
+    oblast_dict = nx.single_source_dijkstra_path_length(graph, start,)
+
+    for node, sum_weight in oblast_dict.items():
+        if sum_weight <= points:
+            oblast_rez[node] = sum_weight
+    return oblast_rez
+
 
 '''
 # Визуализация графа в браузере, чтобы использовать нужно установить algorithmx

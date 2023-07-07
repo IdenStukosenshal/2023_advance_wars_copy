@@ -17,16 +17,6 @@ def check_events(screen, settings_obj, ramka_obj, path_s, graph):
 
 
 def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, graph):
-
-    if event.key == pygame.K_RIGHT:
-        ramka_obj.move_right = True
-    if event.key == pygame.K_LEFT:
-        ramka_obj.move_left = True
-    if event.key == pygame.K_UP:
-        ramka_obj.move_up = True
-    if event.key == pygame.K_DOWN:
-        ramka_obj.move_down = True
-
     if event.key == pygame.K_SPACE:
         if ramka_obj.path_changing_allowed is False:
             ramka_obj.path_changing_allowed = True
@@ -34,13 +24,65 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, graph)
             path_line = PathElement(screen, settings_obj, start_position)  # Создание объекта пути
             path_s.add(path_line)
             ramka_obj.link_to_current_path = path_line  # сохранить ссылку на текущий объект в объекте рамки, костыль?
+            ramka_obj.allowed_oblast_experim = map_to_graph.get_allowed_oblast(graph, start_position, points=7) #костыль?
         else:
             ramka_obj.path_changing_allowed = False
+
+    if event.key == pygame.K_RIGHT:
+        if ramka_obj.path_changing_allowed:
+            vektor = 'right'
+            if is_moving_alloved(vektor, ramka_obj, ramka_obj.allowed_oblast_experim):
+                ramka_obj.move_right = True
+        else:
+            ramka_obj.move_right = True
+
+    if event.key == pygame.K_LEFT:
+        if ramka_obj.path_changing_allowed:
+            vektor = 'left'
+            if is_moving_alloved(vektor, ramka_obj, ramka_obj.allowed_oblast_experim):
+                ramka_obj.move_left = True
+        else:
+            ramka_obj.move_left = True
+
+    if event.key == pygame.K_UP:
+        if ramka_obj.path_changing_allowed:
+            vektor = 'up'
+            if is_moving_alloved(vektor, ramka_obj, ramka_obj.allowed_oblast_experim):
+                ramka_obj.move_up = True
+        else:
+            ramka_obj.move_up = True
+
+    if event.key == pygame.K_DOWN:
+        if ramka_obj.path_changing_allowed:
+            vektor = 'down'
+            if is_moving_alloved(vektor, ramka_obj, ramka_obj.allowed_oblast_experim):
+                ramka_obj.move_down = True
+        else:
+            ramka_obj.move_down = True
 
     ramka_obj.update()  # дополнительное обновление позиции, чтобы она не отставала
 
     if ramka_obj.path_changing_allowed is True:
         peres4et_puti(settings_obj, ramka_obj, graph)
+
+def is_moving_alloved(vektor, ramka_obj, allowed_oblast):
+    """Получает направление, вычисляет будущую точку
+    Возвращает bool"""
+    future_node = 0
+    if vektor == 'right':
+        future_node = ramka_obj.y_x_to_graph[0], ramka_obj.y_x_to_graph[1]+1
+    elif vektor == 'left':
+        future_node = ramka_obj.y_x_to_graph[0], ramka_obj.y_x_to_graph[1]-1
+    elif vektor == 'up':
+        future_node = ramka_obj.y_x_to_graph[0]-1, ramka_obj.y_x_to_graph[1]
+    elif vektor == 'down':
+        future_node = ramka_obj.y_x_to_graph[0], ramka_obj.y_x_to_graph[1]+1
+
+    if future_node in allowed_oblast:
+        print("ДВИГАТЬСЯ МОЖНО")
+    else:
+        print("ДВИГАТЬСЯ НЕЛЬЗЯ, очки перемещения закончились")
+    return future_node in allowed_oblast
 
 
 def peres4et_puti(settings_obj, ramka_obj, graph,):
@@ -100,9 +142,7 @@ def create_path(start, finish, graph):
 
     """
 
-    points = 10000
-
-    path = map_to_graph.path_find(start, finish, graph, points)
+    path = map_to_graph.path_find(start, finish, graph)
     return path
 
 

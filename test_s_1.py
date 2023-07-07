@@ -25,5 +25,12 @@ def draw_in_browser(graph):
     server.start()
 
 
-draw_in_browser(g)
+#draw_in_browser(g)
 
+
+a = {(1, 2): 3, (2, 3): 4, (1, 3): 5,}
+k = (1, 2)
+b = k[0], k[1]+1
+
+if b in a:
+    print(b)

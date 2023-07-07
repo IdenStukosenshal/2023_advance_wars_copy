@@ -23,7 +23,6 @@ class Ramka(Sprite):
         self.spr_razm = self.settings_obj.w_and_h_sprite_map  # Для краткости
 
         self.y_x_to_graph = ((y // self.spr_razm), (x // self.spr_razm))  # текущая координата
-        self.start_experim = self.y_x_to_graph  # эксперимент, стартовая точка-атрибут рамки
 
         self.path_changing_allowed = False
         self.link_to_current_path = None

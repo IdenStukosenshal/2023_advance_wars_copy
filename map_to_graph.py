@@ -8,6 +8,7 @@ def file_map_to_massive(file_name):
     """Открывает файл.
     Возвращает массив с картой.
     """
+    print("Массив карты создан")
     m = []
     with open(file_name) as f:
         for line in f:
@@ -23,6 +24,7 @@ def massive_to_graph(massive, weights):
      где первое число это y(номер строки), второе х(номер столбца)
 
      """
+    print("Граф создан")
     g_inf = nx.Graph()
     edges = []
     len_massive = len(massive)
@@ -65,6 +67,7 @@ def path_find(start, finish, graph, points=10):
     :param graph: граф юнита
     :return: восстановленный путь start->end или None, если пути нет
     """
+    # shortest_path = nx.dijkstra_path(graph, start, finish)
     # соседи 0.0  ->   {'0.1': {'weight': 9000}, '1.0': {'weight': 9000}, '1.1': {'weight': 9000}}
     # s = g_inf.adj['0.0']
     # вес ребра = G[node1][node2]['weight']
@@ -86,6 +89,7 @@ def path_find(start, finish, graph, points=10):
 
     if len_path(shortest_path) > points:
         return None
+    print("путь пересчитан: ", shortest_path, "Длина пути=: ", len_path(shortest_path))
     return shortest_path
 
 '''

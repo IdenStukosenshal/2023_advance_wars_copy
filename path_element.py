@@ -13,6 +13,7 @@ class PathElement(Sprite):
 
         self.list_path = []
         self.start_position = start_position
+        self.allowed_oblast_experim = None
 
     def draw_path(self,):
         if len(self.list_path) > 1 and self.list_path[0] != self.list_path[1]:

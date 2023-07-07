@@ -30,6 +30,8 @@ def vidiya_game():
 
     path_s = Group()
 
+    link_to_path = None
+
     while True:
 
         clock.tick(settings_obj.fps)

@@ -17,21 +17,22 @@ def check_events(screen, settings_obj, ramka_obj, path_s, graph):
 
 
 def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, graph):
+    global link_to_path
     if event.key == pygame.K_SPACE:
         if ramka_obj.path_changing_allowed is False:
             ramka_obj.path_changing_allowed = True
             start_position = ramka_obj.y_x_to_graph
             path_line = PathElement(screen, settings_obj, start_position)  # Создание объекта пути
             path_s.add(path_line)
-            ramka_obj.link_to_current_path = path_line  # сохранить ссылку на текущий объект в объекте рамки, костыль?
-            ramka_obj.allowed_oblast_experim = map_to_graph.get_allowed_oblast(graph, start_position, points=7) #костыль?
+            link_to_path = path_line  # сохранить ссылку на текущий объект
+            link_to_path.allowed_oblast_experim = map_to_graph.get_allowed_oblast(graph, start_position, points=6)
         else:
             ramka_obj.path_changing_allowed = False
 
     if event.key == pygame.K_RIGHT:
         if ramka_obj.path_changing_allowed:
             vektor = 'right'
-            if is_moving_alloved(vektor, ramka_obj, ramka_obj.allowed_oblast_experim):
+            if is_moving_alloved(vektor, ramka_obj, link_to_path.allowed_oblast_experim):
                 ramka_obj.move_right = True
         else:
             ramka_obj.move_right = True
@@ -39,7 +40,7 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, graph)
     if event.key == pygame.K_LEFT:
         if ramka_obj.path_changing_allowed:
             vektor = 'left'
-            if is_moving_alloved(vektor, ramka_obj, ramka_obj.allowed_oblast_experim):
+            if is_moving_alloved(vektor, ramka_obj, link_to_path.allowed_oblast_experim):
                 ramka_obj.move_left = True
         else:
             ramka_obj.move_left = True
@@ -47,7 +48,7 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, graph)
     if event.key == pygame.K_UP:
         if ramka_obj.path_changing_allowed:
             vektor = 'up'
-            if is_moving_alloved(vektor, ramka_obj, ramka_obj.allowed_oblast_experim):
+            if is_moving_alloved(vektor, ramka_obj, link_to_path.allowed_oblast_experim):
                 ramka_obj.move_up = True
         else:
             ramka_obj.move_up = True
@@ -55,7 +56,7 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, graph)
     if event.key == pygame.K_DOWN:
         if ramka_obj.path_changing_allowed:
             vektor = 'down'
-            if is_moving_alloved(vektor, ramka_obj, ramka_obj.allowed_oblast_experim):
+            if is_moving_alloved(vektor, ramka_obj, link_to_path.allowed_oblast_experim):
                 ramka_obj.move_down = True
         else:
             ramka_obj.move_down = True
@@ -76,7 +77,7 @@ def is_moving_alloved(vektor, ramka_obj, allowed_oblast):
     elif vektor == 'up':
         future_node = ramka_obj.y_x_to_graph[0]-1, ramka_obj.y_x_to_graph[1]
     elif vektor == 'down':
-        future_node = ramka_obj.y_x_to_graph[0], ramka_obj.y_x_to_graph[1]+1
+        future_node = ramka_obj.y_x_to_graph[0]+1, ramka_obj.y_x_to_graph[1]
 
     if future_node in allowed_oblast:
         print("ДВИГАТЬСЯ МОЖНО")
@@ -86,10 +87,11 @@ def is_moving_alloved(vektor, ramka_obj, allowed_oblast):
 
 
 def peres4et_puti(settings_obj, ramka_obj, graph,):
-    start = ramka_obj.link_to_current_path.start_position
+    global link_to_path
+    start = link_to_path.start_position
 
     if start == ramka_obj.y_x_to_graph:  # Путь не создаётся
-        ramka_obj.link_to_current_path.list_path = []
+        link_to_path.list_path = []
         print("НЕТ ПУТИ")
         return None
 
@@ -100,7 +102,7 @@ def peres4et_puti(settings_obj, ramka_obj, graph,):
         x = x * settings_obj.w_and_h_sprite_map + settings_obj.w_and_h_sprite_map//2
         rez_path_massive.append((x, y))
     if ramka_obj.path_changing_allowed:
-        ramka_obj.link_to_current_path.list_path = rez_path_massive
+        link_to_path.list_path = rez_path_massive
 
 
 def check_key_up_events(event, ramka_obj, ):

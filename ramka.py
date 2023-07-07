@@ -25,9 +25,6 @@ class Ramka(Sprite):
         self.y_x_to_graph = ((y // self.spr_razm), (x // self.spr_razm))  # текущая координата
 
         self.path_changing_allowed = False
-        self.link_to_current_path = None
-
-        self.allowed_oblast_experim = None
 
     def draw_ramka(self):
         self.screen.blit(self.ramka, self.rect)

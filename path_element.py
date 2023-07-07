@@ -20,12 +20,11 @@ class PathElement(Sprite):
         self.draw_oblast_finished = None
 
     def draw_path(self,):
-        #global chang_path_global
         if self.allowed_oblast_experim and main.chang_path_global and not self.draw_oblast_finished:
             koord_list = self._nodes_to_koordinate(self.allowed_oblast_experim)
             self._drawing_oblast(koord_list)
         if len(self.list_path) > 1 and self.list_path[0] != self.list_path[1]:
-            pygame.draw.lines(self.screen, (255, 255, 255), False, self.list_path, 4)
+            pygame.draw.lines(self.screen, (0, 200, 200), False, self.list_path, 2)
 
     def _nodes_to_koordinate(self, nodes_list):
         rez_list = []
@@ -37,7 +36,11 @@ class PathElement(Sprite):
 
     def _drawing_oblast(self, koord_list):
         for y, x in koord_list:
-            pygame.draw.rect(self.screen, (255, 255, 255), (x+5, y+5, self.settings_obj.w_and_h_sprite_map-10, self.settings_obj.w_and_h_sprite_map-10), 1)
+            pygame.draw.rect(self.screen, (255, 255, 255), (x+3, y+3, self.settings_obj.w_and_h_sprite_map-6, self.settings_obj.w_and_h_sprite_map-6), 1)
+
+    def _drawing_arrow(self, list_path):
+        """Рисует одну из 8 стрелочек в зависимости от направления пути(последние 2 точки)"""
+        pass
 
 
 

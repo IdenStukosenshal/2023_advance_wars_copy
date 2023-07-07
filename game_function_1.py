@@ -18,8 +18,6 @@ def check_events(screen, settings_obj, ramka_obj, path_s, graph):
 
 
 def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, graph):
-    #global link_to_path
-    #global chang_path_global
     if event.key == pygame.K_SPACE:
         if main.chang_path_global is False:
             main.chang_path_global = True
@@ -91,7 +89,6 @@ def is_moving_alloved(vektor, ramka_obj, allowed_oblast):
 
 
 def peres4et_puti(settings_obj, ramka_obj, graph,):
-    #global link_to_path, chang_path_global
     start = main.link_to_path.start_position
 
     if start == ramka_obj.y_x_to_graph:  # Путь не создаётся

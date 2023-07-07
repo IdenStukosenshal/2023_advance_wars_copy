@@ -4,6 +4,7 @@ import sys
 import map_to_graph
 from map_element import MapElement
 from path_element import PathElement
+import main
 
 
 def check_events(screen, settings_obj, ramka_obj, path_s, graph):
@@ -17,54 +18,57 @@ def check_events(screen, settings_obj, ramka_obj, path_s, graph):
 
 
 def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, graph):
-    global link_to_path
+    #global link_to_path
+    #global chang_path_global
     if event.key == pygame.K_SPACE:
-        if ramka_obj.path_changing_allowed is False:
-            ramka_obj.path_changing_allowed = True
+        if main.chang_path_global is False:
+            main.chang_path_global = True
             start_position = ramka_obj.y_x_to_graph
             path_line = PathElement(screen, settings_obj, start_position)  # Создание объекта пути
             path_s.add(path_line)
-            link_to_path = path_line  # сохранить ссылку на текущий объект
-            link_to_path.allowed_oblast_experim = map_to_graph.get_allowed_oblast(graph, start_position, points=6)
+            main.link_to_path = path_line  # сохранить ссылку на текущий объект
+            main.link_to_path.allowed_oblast_experim = map_to_graph.get_allowed_oblast(graph, start_position, points=6)
         else:
-            ramka_obj.path_changing_allowed = False
+            main.chang_path_global = False
+            main.link_to_path.draw_oblast_finished = True
 
     if event.key == pygame.K_RIGHT:
-        if ramka_obj.path_changing_allowed:
+        if main.chang_path_global:
             vektor = 'right'
-            if is_moving_alloved(vektor, ramka_obj, link_to_path.allowed_oblast_experim):
+            if is_moving_alloved(vektor, ramka_obj, main.link_to_path.allowed_oblast_experim):
                 ramka_obj.move_right = True
         else:
             ramka_obj.move_right = True
 
     if event.key == pygame.K_LEFT:
-        if ramka_obj.path_changing_allowed:
+        if main.chang_path_global:
             vektor = 'left'
-            if is_moving_alloved(vektor, ramka_obj, link_to_path.allowed_oblast_experim):
+            if is_moving_alloved(vektor, ramka_obj, main.link_to_path.allowed_oblast_experim):
                 ramka_obj.move_left = True
         else:
             ramka_obj.move_left = True
 
     if event.key == pygame.K_UP:
-        if ramka_obj.path_changing_allowed:
+        if main.chang_path_global:
             vektor = 'up'
-            if is_moving_alloved(vektor, ramka_obj, link_to_path.allowed_oblast_experim):
+            if is_moving_alloved(vektor, ramka_obj, main.link_to_path.allowed_oblast_experim):
                 ramka_obj.move_up = True
         else:
             ramka_obj.move_up = True
 
     if event.key == pygame.K_DOWN:
-        if ramka_obj.path_changing_allowed:
+        if main.chang_path_global:
             vektor = 'down'
-            if is_moving_alloved(vektor, ramka_obj, link_to_path.allowed_oblast_experim):
+            if is_moving_alloved(vektor, ramka_obj, main.link_to_path.allowed_oblast_experim):
                 ramka_obj.move_down = True
         else:
             ramka_obj.move_down = True
 
     ramka_obj.update()  # дополнительное обновление позиции, чтобы она не отставала
 
-    if ramka_obj.path_changing_allowed is True:
+    if main.chang_path_global is True:
         peres4et_puti(settings_obj, ramka_obj, graph)
+
 
 def is_moving_alloved(vektor, ramka_obj, allowed_oblast):
     """Получает направление, вычисляет будущую точку
@@ -87,11 +91,11 @@ def is_moving_alloved(vektor, ramka_obj, allowed_oblast):
 
 
 def peres4et_puti(settings_obj, ramka_obj, graph,):
-    global link_to_path
-    start = link_to_path.start_position
+    #global link_to_path, chang_path_global
+    start = main.link_to_path.start_position
 
     if start == ramka_obj.y_x_to_graph:  # Путь не создаётся
-        link_to_path.list_path = []
+        main.link_to_path.list_path = []
         print("НЕТ ПУТИ")
         return None
 
@@ -101,8 +105,8 @@ def peres4et_puti(settings_obj, ramka_obj, graph,):
         y = y * settings_obj.w_and_h_sprite_map + settings_obj.w_and_h_sprite_map//2
         x = x * settings_obj.w_and_h_sprite_map + settings_obj.w_and_h_sprite_map//2
         rez_path_massive.append((x, y))
-    if ramka_obj.path_changing_allowed:
-        link_to_path.list_path = rez_path_massive
+    if main.chang_path_global:
+        main.link_to_path.list_path = rez_path_massive
 
 
 def check_key_up_events(event, ramka_obj, ):

@@ -6,6 +6,8 @@ import game_function_1
 import map_to_graph
 from ramka import Ramka
 
+link_to_path = None
+chang_path_global = False
 
 def vidiya_game():
     settings_obj = Settings()
@@ -20,7 +22,7 @@ def vidiya_game():
     map_massive = map_to_graph.file_map_to_massive(file_name)
     game_function_1.create_map(map_massive, settings_obj, screen, map_elements)  # добавляет элементы карты в группу
 
-    weights_track = {'#': 1.25, 'd': 1, 'f': 1.75, '@': 900, 'v': 900, 't': 1.25}
+    weights_track = {'#': 1.5, 'd': 1, 'f': 2, '@': 900, 'v': 900, 't': 1.25}
     graph = map_to_graph.massive_to_graph(map_massive, weights_track)
 
     """Веса и граф должны быть получены в зависимости от выбранного юнита
@@ -29,8 +31,6 @@ def vidiya_game():
     ramka_obj = Ramka(64, 64, settings_obj, screen)
 
     path_s = Group()
-
-    link_to_path = None
 
     while True:
 
@@ -42,7 +42,8 @@ def vidiya_game():
         pygame.display.flip()
 
 
-vidiya_game()
+if __name__ == '__main__':
+    vidiya_game()
 
 """Управление:
 Перемещение рамки на стрелочки, поставить стартовую точку - SPACE, поставить конечную точку - тоже SPACE .

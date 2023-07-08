@@ -6,29 +6,21 @@ from map_element import MapElement
 from path_element import PathElement
 import main
 
+from units_location_s import list_all_units
 
-def check_events(screen, settings_obj, ramka_obj, path_s, graph):
+def check_events(screen, settings_obj, ramka_obj, path_s, graph, recon_s):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
         elif event.type == pygame.KEYDOWN:
-            check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, graph)
+            check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, graph, recon_s)
         elif event.type == pygame.KEYUP:
             check_key_up_events(event, ramka_obj, )
 
 
-def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, graph):
+def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, graph, recon_s):
     if event.key == pygame.K_SPACE:
-        if main.chang_path_global is False:
-            main.chang_path_global = True
-            start_position = ramka_obj.get_koordinate()
-            path_line = PathElement(screen, settings_obj, start_position)  # Создание объекта пути
-            path_s.add(path_line)  # добавить в группу
-            main.link_to_path = path_line  # сохранить ссылку на текущий объект
-            main.link_to_path.set_allowed_obl( map_to_graph.get_allowed_oblast(graph, start_position, points=6) )
-        else:
-            main.chang_path_global = False
-            main.link_to_path.draw_oblast_finished = True
+        processing_action_button(screen, settings_obj, ramka_obj, path_s, graph, recon_s)
 
     if event.key == pygame.K_RIGHT:
         if main.chang_path_global:
@@ -73,6 +65,28 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, graph)
     #ramka_obj.update()  # дополнительное обновление позиции, чтобы путь не не отставал от рамки на 1 шаг
 
 
+def processing_action_button(screen, settings_obj, ramka_obj, path_s, graph, recon_s):
+    start_position = ramka_obj.get_koordinate()
+    if start_position in list_all_units and main.chang_path_global is False:
+
+        main.push_the_lever()
+        path_line = PathElement(screen, settings_obj, start_position)  # Создание объекта пути
+        path_s.add(path_line)  # добавить в группу путей
+        main.link_to_path = path_line  # сохранить ссылку на текущий объект пути(глобально)
+        main.link_to_path.set_allowed_obl(map_to_graph.get_allowed_oblast(graph, start_position, points=6))
+
+    elif main.chang_path_global and start_position not in list_all_units:
+
+        main.push_the_lever()
+        main.link_to_path.draw_oblast_finished = True
+
+        pa = main.link_to_path.get_node_list_path()
+        for un in recon_s:
+            if pa[0] == un.get_koordinate():
+                un.set_list_path(pa)  # Здесь список передаётся в виде нод, переделывается в координаты в методе
+        list_all_units.add(pa[-1])
+        list_all_units.remove(pa[0])
+
 def is_moving_alloved(vektor, ramka_obj, allowed_oblast):
     """Получает направление, вычисляет будущую точку
     Возвращает bool, координата вида (y, x)"""
@@ -110,7 +124,8 @@ def peres4et_puti(settings_obj, ramka_obj, graph,):
         x = x * settings_obj.w_and_h_sprite_map + settings_obj.w_and_h_sprite_map//2
         rez_path_massive.append((x, y))
     #if main.chang_path_global:
-    main.link_to_path.set_list_path(rez_path_massive)
+    main.link_to_path.set_list_path(rez_path_massive)  # массив координат в пикселях
+
 
 
 def check_key_up_events(event, ramka_obj, ):
@@ -156,13 +171,17 @@ def create_path(start, finish, graph):
     return path
 
 
-def update_screen(screen, map_elements, ramka_obj, path_s):
+def update_screen(screen, map_elements, ramka_obj, path_s, recon_s):
     #for map_elem in map_elements.sprites():
         #map_elem.draw_map()
     # path_s.draw(screen)
     map_elements.draw(screen)
     for path in path_s.sprites():
         path.draw_path()
+
+    for rec in recon_s.sprites():
+        rec.draw_recon()
+
     ramka_obj.draw_ramka()
 
 

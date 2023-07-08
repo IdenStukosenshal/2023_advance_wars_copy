@@ -19,12 +19,14 @@ class PathElement(Sprite):
 
     def draw_path(self,):
         if self.allowed_oblast_list and not self.draw_oblast_finished:
-            koord_list = self.__nodes_to_koordinate(self.allowed_oblast_list)
+            koord_list = self.__allowed_oblast_to_koordinate(self.allowed_oblast_list)
             self.__drawing_oblast(koord_list)
+
         if len(self.list_path) > 1 and self.list_path[0] != self.list_path[1]:
             pygame.draw.lines(self.screen, (0, 200, 200), False, self.list_path, 2)
 
-    def __nodes_to_koordinate(self, nodes_list):
+    def __allowed_oblast_to_koordinate(self, nodes_list):
+        """Возвращает координаты доступной области в пикселях"""
         rez_list = []
         for y, x in nodes_list:
             y = y * self.settings_obj.w_and_h_sprite_map
@@ -42,6 +44,18 @@ class PathElement(Sprite):
 
     def set_list_path(self, list_path):
         self.list_path = list_path
+
+    def get_list_path(self):
+        return self.list_path
+
+    def get_node_list_path(self):
+        rez = []
+        for x, y in self.list_path:
+            y = y // self.settings_obj.w_and_h_sprite_map
+            x = x // self.settings_obj.w_and_h_sprite_map
+            rez.append((y, x))
+
+        return rez
 
     def set_allowed_obl(self, nodes_list):
         self.allowed_oblast_list = nodes_list

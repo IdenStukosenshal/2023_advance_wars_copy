@@ -5,9 +5,21 @@ from settings import Settings
 import game_function_1
 import map_to_graph
 from ramka import Ramka
+from recon import Recon
 
 link_to_path = None
+
 chang_path_global = False
+
+
+def push_the_lever():
+    """Эта функция вызывается при нажатии кнопки действия
+    переключает флаг для управления перемещением и построением пути"""
+    global chang_path_global
+    if chang_path_global:
+        chang_path_global = False
+    else:
+        chang_path_global = True
 
 
 def vidiya_game():
@@ -33,12 +45,25 @@ def vidiya_game():
 
     path_s = Group()
 
+    recon_s = Group()
+    from units_location_s import recon_positions
+    for id, yx in enumerate(recon_positions):
+        y = yx[0] * settings_obj.w_and_h_sprite_map
+        x = yx[1] * settings_obj.w_and_h_sprite_map
+        new_rec = Recon(id, x, y, settings_obj, screen)
+        recon_s.add(new_rec)
+
+
+
     while True:
 
         clock.tick(settings_obj.fps)
         ramka_obj.update()
-        game_function_1.check_events(screen, settings_obj, ramka_obj, path_s, graph)
-        game_function_1.update_screen(screen, map_elements, ramka_obj, path_s)
+
+        recon_s.update()
+
+        game_function_1.check_events(screen, settings_obj, ramka_obj, path_s, graph, recon_s)
+        game_function_1.update_screen(screen, map_elements, ramka_obj, path_s, recon_s)
 
         pygame.display.flip()
 

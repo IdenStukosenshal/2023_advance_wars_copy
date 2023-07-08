@@ -32,27 +32,32 @@ class Ramka(Sprite):
         if self.move_left and self.rect.left > 0:
             self.rect.centerx -= self.spr_razm
             self.move_left = False
-            self._update_coordinate()
+            self.__update_coordinate()
 
         if self.move_right and self.rect.right < self.settings_obj.screen_w:
             self.rect.centerx += self.spr_razm
             self.move_right = False
-            self._update_coordinate()
+            self.__update_coordinate()
 
         if self.move_up and self.rect.top > 0:
             self.rect.centery -= self.spr_razm
             self.move_up = False
-            self._update_coordinate()
+            self.__update_coordinate()
 
         if self.move_down and self.rect.bottom < self.settings_obj.screen_h:
             self.rect.centery += self.spr_razm
             self.move_down = False
-            self._update_coordinate()
+            self.__update_coordinate()
 
-    def _update_coordinate(self):
+    def __update_coordinate(self):
         """Изменение текущих координат рамки.
         Преобразование координат к виду (y, x) Для работы с графом.
         Вызывается только в момент изменения координат"""
         self.y_x_to_graph = ( (self.rect.y // self.spr_razm), (self.rect.x // self.spr_razm) )
+
+    def get_koordinate(self):
+
+        return self.y_x_to_graph
+
 
 

@@ -5,7 +5,7 @@ from settings import Settings
 import game_function_1
 import map_to_graph
 from ramka import Ramka
-from recon import Recon
+
 
 link_to_path = None
 
@@ -46,14 +46,7 @@ def vidiya_game():
     path_s = Group()
 
     recon_s = Group()
-    from units_location_s import recon_positions
-    for id, yx in enumerate(recon_positions):
-        y = yx[0] * settings_obj.w_and_h_sprite_map
-        x = yx[1] * settings_obj.w_and_h_sprite_map
-        new_rec = Recon(id, x, y, settings_obj, screen)
-        recon_s.add(new_rec)
-
-
+    game_function_1.create_my_army(screen, settings_obj, recon_s)
 
     while True:
 

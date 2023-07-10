@@ -1,7 +1,8 @@
 import networkx as nx
+import main
 
-weights_inf = {'#': 1, 'd': 1, 'f': 1, '@': 2, 'v': 2, 't': 1}
-weights_track = {'#': 1.5, 'd': 1, 'f': 1.75, '@': 9000, 'v': 9000, 't': 1}
+#weights_inf = {'#': 1, 'd': 1, 'f': 1, '@': 2, 'v': 2, 't': 1}
+#weights_track = {'#': 1.5, 'd': 1, 'f': 1.75, '@': 9000, 'v': 9000, 't': 1}
 
 
 def file_map_to_massive(file_name):
@@ -65,7 +66,7 @@ def path_find(start, finish, graph):
     :param start: стартовая node
     :param finish: конечная node
     :param graph: граф юнита
-    :return: восстановленный путь start->end или None, если пути нет
+    :return: восстановленный путь start->end
     """
     # shortest_path = nx.dijkstra_path(graph, start, finish)
     # соседи 0.0  ->   {'0.1': {'weight': 9000}, '1.0': {'weight': 9000}, '1.1': {'weight': 9000}}
@@ -92,7 +93,8 @@ def path_find(start, finish, graph):
 
 
 def get_allowed_oblast(graph, start, points):
-    """Формируем словарь разрешённых для посещения точек"""
+    """Формируем словарь разрешённых для посещения точек с помощью алгоритма Дейкстры
+    Добавляем только те, до которых хватит очков перемещения"""
     oblast_rez = dict()
 
     oblast_dict = nx.single_source_dijkstra_path_length(graph, start,)
@@ -102,6 +104,17 @@ def get_allowed_oblast(graph, start, points):
             oblast_rez[node] = sum_weight
     return oblast_rez
 
+
+def peres4et_puti(ramka_obj, graph):
+    start = main.link_to_path.start_position
+
+    if start == ramka_obj.get_koordinate():  # Путь не создаётся
+        main.link_to_path.set_list_path([])
+        print("НЕТ ПУТИ")
+        return None
+
+    path_list = path_find(start, ramka_obj.get_koordinate(), graph)  # ф-ция расчёта пути
+    main.link_to_path.set_list_path(path_list)
 
 '''
 # Визуализация графа в браузере, чтобы использовать нужно установить algorithmx

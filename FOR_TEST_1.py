@@ -6,7 +6,7 @@ from algorithmx.networkx import add_graph
 
 
 g = nx.Graph()
-edges = [ ((1, 2), (1, 3), 3), ((1, 3), (1, 4), 4), ((1, 4), (1, 2), 5) ]
+edges = [ ((1, 2), (1, 3), 6), ((1, 3), (1, 4), 4), ((1, 4), (1, 2), 5), ((1, 3), (1, 2), 7) ]
 edges.append( ((1, 4), (1, 10), 10)  )
 g.add_weighted_edges_from(edges)
 
@@ -34,3 +34,10 @@ b = k[0], k[1]+1
 
 if b in a:
     print(b)
+
+a = set('123456')
+b = set('123456')
+print(f'a -> {a}, b -> {b}')
+print(a - b)  # {'1', '2'}
+print(b - a)  # {'5', '6'}
+

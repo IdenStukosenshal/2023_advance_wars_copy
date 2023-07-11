@@ -10,8 +10,8 @@ class PathElement(Sprite):
         self.screen = screen
         self.settings_obj = settings_obj
 
-        self.list_path = []
         self.start_position = start_position
+        self.list_path = [start_position, start_position]  # для возможности остаться на своей позиции без перемещения
         self.allowed_oblast_list = None
 
         self.draw_oblast_finished = False

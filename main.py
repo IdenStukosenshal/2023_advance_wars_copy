@@ -5,13 +5,24 @@ from settings import Settings
 import game_function_1
 import map_to_graph
 from ramka import Ramka
-
+from units_location_s import set_all_units
 
 link_to_path = None
 
 chang_path_global = False
 
+ramka_position = None
 
+set_all_units_copy = set_all_units.copy()
+# копия предыдущих занятых позиций для быстрого их получения и возвращения их состояния
+
+koord_and_units_dict = dict()
+# словарь юнитов(value) и их координат(key) для доступа при выборе рамкой
+
+changed_graph_for_tracks = None  # общий граф для техники с подкорректированными весами занятых клеток
+changed_graph_for_infantry = None
+
+unit_object = False
 def push_the_lever():
     """Эта функция вызывается при нажатии кнопки действия
     переключает флаг для управления перемещением и построением пути"""
@@ -23,6 +34,7 @@ def push_the_lever():
 
 
 def vidiya_game():
+    global changed_graph_for_tracks, ramka_position
     settings_obj = Settings()
 
     pygame.init()
@@ -34,19 +46,19 @@ def vidiya_game():
     file_name = "map_1.txt"
     map_massive = map_to_graph.file_map_to_massive(file_name)
     game_function_1.create_map(map_massive, settings_obj, screen, map_elements)  # добавляет элементы карты в группу
-
-    weights_track = {'#': 1.5, 'd': 1, 'f': 2, '@': 90, 'v': 90, 't': 1}
-    graph = map_to_graph.massive_to_graph(map_massive, weights_track)
-
-    """Веса и граф должны быть получены в зависимости от выбранного юнита
-    Связать с функцией check_events в будущем"""
-
     ramka_obj = Ramka(64, 64, settings_obj, screen)
-
+    ramka_position = ramka_obj.get_koordinate()
     path_s = Group()
 
+
+
+    #graph_track = map_to_graph.experimental_digraph(map_massive, settings_obj.weights_track)
+    #changed_graph_for_tracks = game_function_1.graph_redacting(graph_track, settings_obj,)
     recon_s = Group()
-    game_function_1.create_my_army(screen, settings_obj, recon_s)
+
+    game_function_1.create_my_army(map_massive, screen, settings_obj, recon_s)
+
+
 
     while True:
 
@@ -55,7 +67,7 @@ def vidiya_game():
 
         recon_s.update()
 
-        game_function_1.check_events(screen, settings_obj, ramka_obj, path_s, graph, recon_s)
+        game_function_1.check_events(screen, settings_obj, ramka_obj, path_s, recon_s)
         game_function_1.update_screen(screen, map_elements, ramka_obj, path_s, recon_s)
 
         pygame.display.flip()

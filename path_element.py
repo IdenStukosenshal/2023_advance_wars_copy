@@ -14,14 +14,13 @@ class PathElement(Sprite):
         self.list_path = [start_position, start_position]  # для возможности остаться на своей позиции без перемещения
         self.allowed_oblast_list = None
 
-        self.draw_oblast_finished = False
 
     def draw_path(self,):
-        if self.allowed_oblast_list and not self.draw_oblast_finished:
+        if self.allowed_oblast_list:
             koord_list = self.__allowed_oblast_to_koordinate(self.allowed_oblast_list)
             self.__drawing_oblast(koord_list)
 
-        if len(self.list_path) > 1 and self.list_path[0] != self.list_path[1] and not self.draw_oblast_finished: # временное решение, путь отображается только вместе с областью
+        if len(self.list_path) > 1 and self.list_path[0] != self.list_path[1]: # временное решение, путь отображается только вместе с областью
             path_koord_list = self.__list_path_to_koordinate(self.list_path)
             pygame.draw.lines(self.screen, (0, 200, 200), False, path_koord_list, 2)
 

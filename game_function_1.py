@@ -29,19 +29,18 @@ def push_the_lever():
         chang_path_global = True
 
 
-def check_events(screen, settings_obj, ramka_obj, path_s, recon_s, map_massive):
+def check_events(screen, settings_obj, ramka_obj, path_s, map_massive):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
         elif event.type == pygame.KEYDOWN:
-            check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, recon_s, map_massive)
+            check_key_down_events(screen, settings_obj, event, ramka_obj, path_s,  map_massive)
         elif event.type == pygame.KEYUP:
             check_key_up_events(event, ramka_obj, )
 
 
-def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, recon_s, map_massive):
+def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_massive):
     global unit_object, all_units_positions, chang_path_global
-
     if event.key == pygame.K_SPACE:
         ramka_koord = ramka_obj.get_koordinate()
         if ramka_koord in all_units_positions.keys() and chang_path_global is False:
@@ -59,18 +58,18 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, recon_
             unit_object.link_to_path = path_line # сохраняем объект пути в экземпляре передвигаемого юнита
 
         elif chang_path_global:
-
             push_the_lever()
-            unit_object.link_to_path.draw_oblast_finished = True
-
             path_u = unit_object.link_to_path.get_list_path()
             for unit in all_units_positions.values():
                 if path_u[0] == unit.get_koordinate():  # выбор перемещаемого
                     unit.set_unit_path(path_u)  # присваиваем юниту его путь
 
             all_units_positions[path_u[-1]] = unit_object  # сохраняем будущую позицию и юнита
-
             graph_redacting(unit_object.get_unit_path()[0], settings_obj, map_massive, all_units_positions)
+
+            del unit_object.link_to_path
+            for path in path_s.copy():
+                path_s.remove(path)
 
     if event.key == pygame.K_RIGHT:
         if chang_path_global:
@@ -130,7 +129,7 @@ def create_map(map_massive, settings_obj, screen, map_elements):
 def create_my_army(map_massive, screen, settings_obj, recon_s):
     global all_units_positions
 
-    def create_recon_squad(map_massive, screen, settings_obj, recon_s):
+    def create_recon_squad(map_massive, screen, settings_obj, recon_s, all_units_positions):
         recon_weights = settings_obj.weights_track
         for id, yx in enumerate(recon_positions):
             y = yx[0] * settings_obj.w_and_h_sprite_map
@@ -142,7 +141,7 @@ def create_my_army(map_massive, screen, settings_obj, recon_s):
         for recon in recon_s:
             recon.link_to_graph = recon_graph
 
-    create_recon_squad(map_massive, screen, settings_obj, recon_s)
+    create_recon_squad(map_massive, screen, settings_obj, recon_s, all_units_positions)
 
 
 
@@ -152,11 +151,12 @@ def update_screen(screen, map_elements, ramka_obj, path_s, recon_s):
         #map_elem.draw_map()
     # path_s.draw(screen)
     map_elements.draw(screen)
-    for path in path_s.sprites():
-        path.draw_path()
 
     for rec in recon_s.sprites():
         rec.draw_recon()
+
+    for path in path_s.sprites():
+        path.draw_path()
 
     ramka_obj.draw_ramka()
 

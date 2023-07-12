@@ -56,22 +56,21 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, recon_
             allowed_obl = get_allowed_oblast(unit_object, ramka_koord)
             path_line.set_allowed_obl(allowed_obl)  # назначена разрешённая область
 
-            unit_object.link_to_path = path_line
+            unit_object.link_to_path = path_line # сохраняем объект пути в экземпляре передвигаемого юнита
 
         elif chang_path_global:
 
             push_the_lever()
             unit_object.link_to_path.draw_oblast_finished = True
 
-            unit_loc_link = None
             path_u = unit_object.link_to_path.get_list_path()
             for unit in all_units_positions.values():
                 if path_u[0] == unit.get_koordinate():  # выбор перемещаемого
-                    unit.set_list_path(path_u)  # присваиваем юниту его путь
-                    unit_loc_link = unit
+                    unit.set_unit_path(path_u)  # присваиваем юниту его путь
+
             all_units_positions[path_u[-1]] = unit_object  # сохраняем будущую позицию и юнита
 
-            graph_redacting(unit_object.get_list_path()[0], settings_obj, map_massive, all_units_positions)
+            graph_redacting(unit_object.get_unit_path()[0], settings_obj, map_massive, all_units_positions)
 
     if event.key == pygame.K_RIGHT:
         if chang_path_global:

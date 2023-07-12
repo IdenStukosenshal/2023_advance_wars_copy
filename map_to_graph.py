@@ -140,22 +140,25 @@ def peres4et_puti(ramka_obj, unit_object, link_to_path):
     if start == ramka_obj.get_koordinate():  # Путь из двух одинаковых точек
         link_to_path.set_list_path([start, start])
         print("ПУТЬ из начала в начало", link_to_path.list_path)
-        return link_to_path
-    else:
 
+    else:
         path_list = nx.astar_path(unit_object.link_to_graph, start, ramka_obj.get_koordinate())  # алгоритм A*  результат вида [(0, 1), (1, 2), (1, 3), ]
         link_to_path.set_list_path(path_list)
-        return link_to_path
+
 
 
 def graph_redacting(start_point, settings_obj, massive, all_units_positions):
     """изменяет граф в соответствии с изменяемыми координатами юнитов,
     Нужно вызывать эту функцию при каждом перемещении юнита"""
-    unit = all_units_positions.pop(start_point)  # удаляем из общего словаря стартовую точку,
+    unit = all_units_positions[start_point]
     graph = unit.link_to_graph
-    start_point = unit.get_list_path()[0]
-    end_point = unit.get_list_path()[-1]
+    start_point = unit.get_unit_path()[0]
+    end_point = unit.get_unit_path()[-1]
     weights = unit.weights
+
+    if start_point != end_point:  # только в этом случае удаляем старт, поскольку сохранение произошло до этого
+        all_units_positions.pop(start_point)
+
 
     # увеличение весов к последней точке пути
     edges = []
@@ -166,8 +169,6 @@ def graph_redacting(start_point, settings_obj, massive, all_units_positions):
     # восстановление весов освобождённой точки(первой точки пути)
     edges_orig = restore_weights(graph, massive, weights, start_point)
     graph.add_weighted_edges_from(edges_orig)  # изменение весов освобождённых точек
-
-    """ПРОБЛЕМА: ВОЗНИКАЕТ РЕБРО В ВИДЕ ПЕТЛИ, КОТОРОЕ ПОКА НЕ ВЛИЯЕТ НИ НА ЧТО"""
 
     for unit in all_units_positions.values():
         unit.link_to_graph = graph
@@ -190,27 +191,25 @@ def restore_weights(graph, massive, weights, start_point):
                           (n_y, n_x),  # если соседняя со стартовой была непроходимой
                           min(weights[massive[p_y][p_x]], weights[massive[n_y][n_x]]))
                          )
-
         elif weights[massive[n_y][n_x]] == max_value:
             edges.append(((n_y, n_x),
                           start_point,
                           min(weights[massive[p_y][p_x]], weights[massive[n_y][n_x]]))
                          )
-            edges.append(((p_y, p_x),
-                          start_point,
+            edges.append((start_point,
+                          (n_y, n_x),
                           max(weights[massive[p_y][p_x]], weights[massive[n_y][n_x]]))
                          )
 
         else:
-            edges.append(((p_y, p_x),  # то же правило, что и при создании карты
+            edges.append((start_point,  # то же правило, что и при создании карты
                           (n_y, n_x),
                           max(weights[massive[p_y][p_x]], weights[massive[n_y][n_x]]))
                          )
             edges.append(((n_y, n_x),
-                          (p_y, p_x),
+                          start_point,
                           max(weights[massive[p_y][p_x]], weights[massive[n_y][n_x]]))
                          )
-
     return edges
 
 

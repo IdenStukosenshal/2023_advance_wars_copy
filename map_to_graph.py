@@ -173,7 +173,6 @@ def graph_redacting(start_point, settings_obj, massive, all_units_positions):
         unit.link_to_graph = graph
 
 
-
 def restore_weights(graph, massive, weights, start_point):
     """Восстановление рёбер по куску оригинальной карты(3, 5 или 8 соседей)"""
 

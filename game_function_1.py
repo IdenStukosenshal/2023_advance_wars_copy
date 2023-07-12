@@ -53,6 +53,7 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_ma
             path_s.add(path_line)
 
             allowed_obl = get_allowed_oblast(unit_object, ramka_koord)
+
             path_line.set_allowed_obl(allowed_obl)  # назначена разрешённая область
 
             unit_object.link_to_path = path_line # сохраняем объект пути в экземпляре передвигаемого юнита

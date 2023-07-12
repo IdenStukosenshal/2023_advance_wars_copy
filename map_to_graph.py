@@ -139,7 +139,6 @@ def peres4et_puti(ramka_obj, unit_object, link_to_path):
 
     if start == ramka_obj.get_koordinate():  # Путь из двух одинаковых точек
         link_to_path.set_list_path([start, start])
-        print("ПУТЬ из начала в начало", link_to_path.list_path)
 
     else:
         path_list = nx.astar_path(unit_object.link_to_graph, start, ramka_obj.get_koordinate())  # алгоритм A*  результат вида [(0, 1), (1, 2), (1, 3), ]
@@ -154,10 +153,6 @@ def peres4et_puti(ramka_obj, unit_object, link_to_path):
     #print(f"будет израсходованно {count_points} очков из {unit_object.path_points} на пути: {link_to_path.get_list_path()}")
 
 
-
-
-
-
 def graph_redacting(start_point, settings_obj, massive, all_units_positions):
     """изменяет граф в соответствии с изменяемыми координатами юнитов,
     Нужно вызывать эту функцию при каждом перемещении юнита"""
@@ -170,19 +165,19 @@ def graph_redacting(start_point, settings_obj, massive, all_units_positions):
     if start_point != end_point:  # только в этом случае удаляем старт, поскольку сохранение произошло до этого
         all_units_positions.pop(start_point)
 
-    # увеличение весов к последней точке пути
-    edges = []
-    for neigh_y, neigh_x in graph.adj[end_point]:
-        edges.append(((neigh_y, neigh_x), end_point, settings_obj.max_value))
-    graph.add_weighted_edges_from(edges)  # изменение весов рёбер к занятым точкам
-
     # восстановление весов освобождённой точки(первой точки пути)
     edges_orig = restore_weights(graph, massive, weights, start_point)
     graph.add_weighted_edges_from(edges_orig)  # изменение весов освобождённых точек
 
+    # увеличение весов ко всем занятым точкам, потому что восстановление весов межет испортить занятую точку
+    edges = []
+    for node in all_units_positions.keys():
+        for neigh_y, neigh_x in graph.adj[node]:
+            edges.append(((neigh_y, neigh_x), node, settings_obj.max_value))
+    graph.add_weighted_edges_from(edges)  # изменение весов рёбер к занятым точкам
+
     for unit in all_units_positions.values():
         unit.link_to_graph = graph
-
 
 def restore_weights(graph, massive, weights, start_point):
     """Восстановление рёбер по куску оригинальной карты(3, 5 или 8 соседей)"""

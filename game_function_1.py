@@ -1,64 +1,100 @@
 import pygame
 import sys
 
-
+from path_element import PathElement
 from map_element import MapElement
 from recon import Recon
+
 from map_to_graph import experimental_digraph
 from map_to_graph import graph_redacting
-import main
+from map_to_graph import get_allowed_oblast
+
 import moving_processing as m_p
 
-import units_location_s
+from units_location_s import recon_positions
+
+unit_object = False
+chang_path_global = False
+
+all_units_positions = dict()
 
 
-def check_events(screen, settings_obj, ramka_obj, path_s, recon_s):
+def push_the_lever():
+    """Эта функция вызывается при нажатии кнопки действия
+    переключает флаг для управления перемещением и построением пути"""
+    global chang_path_global
+    if chang_path_global:
+        chang_path_global = False
+    else:
+        chang_path_global = True
+
+
+def check_events(screen, settings_obj, ramka_obj, path_s, recon_s, map_massive):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
         elif event.type == pygame.KEYDOWN:
-            check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, recon_s)
+            check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, recon_s, map_massive)
         elif event.type == pygame.KEYUP:
             check_key_up_events(event, ramka_obj, )
 
 
-def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, recon_s):
-
-    if main.chang_path_global:
-        unit_obj = main.unit_object
-        print(unit_obj, "ВЫБРАН")
-    else:
-        unit_obj = False
+def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, recon_s, map_massive):
+    global unit_object, all_units_positions, chang_path_global
 
     if event.key == pygame.K_SPACE:
-        if ramka_obj.get_koordinate() in main.koord_and_units_dict.keys() and main.chang_path_global is False:
-            unit_obj = main.koord_and_units_dict[ramka_obj.get_koordinate()]
-            main.unit_object = unit_obj
-            print(unit_obj, "ВЫБРАН")
-        m_p.processing_action_button(screen, settings_obj, path_s, recon_s, unit_obj, ramka_obj)
+        ramka_koord = ramka_obj.get_koordinate()
+        if ramka_koord in all_units_positions.keys() and chang_path_global is False:
+
+            unit_object = all_units_positions[ramka_obj.get_koordinate()]
+
+            push_the_lever()
+
+            path_line = PathElement(screen, settings_obj, ramka_koord)  # создали объект пути
+            path_s.add(path_line)
+
+            allowed_obl = get_allowed_oblast(unit_object, ramka_koord)
+            path_line.set_allowed_obl(allowed_obl)  # назначена разрешённая область
+
+            unit_object.link_to_path = path_line
+
+        elif chang_path_global:
+
+            push_the_lever()
+            unit_object.link_to_path.draw_oblast_finished = True
+
+            unit_loc_link = None
+            path_u = unit_object.link_to_path.get_list_path()
+            for unit in all_units_positions.values():
+                if path_u[0] == unit.get_koordinate():  # выбор перемещаемого
+                    unit.set_list_path(path_u)  # присваиваем юниту его путь
+                    unit_loc_link = unit
+            all_units_positions[path_u[-1]] = unit_object  # сохраняем будущую позицию и юнита
+
+            graph_redacting(unit_object.get_list_path()[0], settings_obj, map_massive, all_units_positions)
 
     if event.key == pygame.K_RIGHT:
-        if main.chang_path_global and unit_obj:
-            m_p.moving_right_in_oblast(ramka_obj, unit_obj)
-        elif not unit_obj:
+        if chang_path_global:
+            m_p.moving_right_in_oblast(ramka_obj, unit_object, unit_object.link_to_path)
+        else:
             ramka_obj.move_right = True
 
     if event.key == pygame.K_LEFT:
-        if main.chang_path_global and unit_obj:
-            m_p.moving_left_in_oblast(ramka_obj, unit_obj)
-        elif not unit_obj:
+        if chang_path_global:
+            m_p.moving_left_in_oblast(ramka_obj, unit_object, unit_object.link_to_path)
+        else:
             ramka_obj.move_left = True
 
     if event.key == pygame.K_UP:
-        if main.chang_path_global and unit_obj:
-            m_p.moving_up_in_oblast(ramka_obj,  unit_obj)
-        elif not unit_obj:
+        if chang_path_global:
+            m_p.moving_up_in_oblast(ramka_obj,  unit_object, unit_object.link_to_path)
+        else:
             ramka_obj.move_up = True
 
     if event.key == pygame.K_DOWN:
-        if main.chang_path_global and unit_obj:
-            m_p.moving_down_in_oblast(ramka_obj,  unit_obj)
-        elif not unit_obj:
+        if chang_path_global:
+            m_p.moving_down_in_oblast(ramka_obj,  unit_object, unit_object.link_to_path)
+        else:
             ramka_obj.move_down = True
 
 
@@ -92,49 +128,24 @@ def create_map(map_massive, settings_obj, screen, map_elements):
             map_elements.add(new_element)
 
 
-
 def create_my_army(map_massive, screen, settings_obj, recon_s):
+    global all_units_positions
 
-    graph_track = experimental_digraph(map_massive, settings_obj.weights_track)
-    changed_graph_for_tracks = graph_redacting(graph_track, settings_obj, )
+    def create_recon_squad(map_massive, screen, settings_obj, recon_s):
+        recon_weights = settings_obj.weights_track
+        for id, yx in enumerate(recon_positions):
+            y = yx[0] * settings_obj.w_and_h_sprite_map
+            x = yx[1] * settings_obj.w_and_h_sprite_map
+            new_rec = Recon(id, x, y, settings_obj, screen)
+            all_units_positions[(yx[0], yx[1])] = new_rec  # добавление в общий словарь
+            recon_s.add(new_rec)
+        recon_graph = experimental_digraph(map_massive, recon_weights, all_units_positions)
+        for recon in recon_s:
+            recon.link_to_graph = recon_graph
 
-    for id, yx in enumerate(units_location_s.recon_positions):
-        y = yx[0] * settings_obj.w_and_h_sprite_map
-        x = yx[1] * settings_obj.w_and_h_sprite_map
-        new_rec = Recon(id, x, y, settings_obj, screen, changed_graph_for_tracks)
-        recon_s.add(new_rec)
-
-        main.koord_and_units_dict[(yx[0], yx[1])] = new_rec  # добавление  в общий словарь
+    create_recon_squad(map_massive, screen, settings_obj, recon_s)
 
 
-'''
-def graph_redacting(graph, settings_obj, ):
-    """изменяет граф в соответствии с изменяемыми координатами юнитов,
-    сейчас они хранятся в общем множестве set_all_units
-
-    Нужно вызывать эту функцию при каждом перемещении юнита"""
-    edges = []
-    for y, x in units_location_s.set_all_units:  # увеличение весов
-        for neigh_y, neigh_x in graph.adj[(y, x)]:
-            edges.append(((neigh_y, neigh_x), (y, x), settings_obj.max_value))
-    graph.add_weighted_edges_from(edges)  # изменение весов рёбер к занятым точкам
-
-    # возвращение предыдущего состояния
-    edges_orig = []
-    # вес ребра = G[node1][node2]['weight']
-    diff_set = main.set_all_units_copy - units_location_s.set_all_units  # вычесть те позиции, которые остались занятыми
-    if diff_set:
-        for y, x in diff_set:
-            for neigh_y, neigh_x in graph.adj[(y, x)]:  # получаем оригинальный вес ребра, от освобождённой точки к соседям
-                orig_weight = graph[(y, x)][neigh_y, neigh_x]['weight']
-                edges_orig.append(((neigh_y, neigh_x), (y, x), orig_weight))
-        graph.add_weighted_edges_from(edges)  # изменение весов освобождённых точек
-
-    main.set_all_units_copy = units_location_s.set_all_units.copy()    # теперь сохраняются текущие координаты
-
-    return graph
-
-'''
 
 
 def update_screen(screen, map_elements, ramka_obj, path_s, recon_s):

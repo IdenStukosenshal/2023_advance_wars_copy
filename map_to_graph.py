@@ -1,12 +1,10 @@
 import networkx as nx
-import main as m
-import units_location_s
+
 
 def file_map_to_massive(file_name):
     """Открывает файл.
     Возвращает массив с картой.
     """
-    print("Массив карты создан")
     m = []
     with open(file_name) as f:
         for line in f:
@@ -18,7 +16,7 @@ def file_map_to_massive(file_name):
 def massive_to_graph(massive, weights):
     """Принимает массив, nodes, weights
     Возвращает взвешенный граф
-    nodes типа 0.0, 0.1,
+    nodes типа (0,0), (0,1),
      где первое число это y(номер строки), второе х(номер столбца)
 
      """
@@ -57,7 +55,7 @@ def massive_to_graph_to_helicopter(massive):
     return g_heli
 
 
-def experimental_digraph(massive, weights):
+def experimental_digraph(massive, weights, all_units_positions):
     """Если на карте есть недостижимые точки(с максимальным весом) при пострении графа
      рёбра направленнные к ним имеют максимальный вес,
     направленные от них имеют вес соседней точки.
@@ -111,98 +109,114 @@ def experimental_digraph(massive, weights):
                                       max(weights[massive[i][j]], weights[massive[i + k_i][j + k_j]]))
                                      )
     g.add_weighted_edges_from(edges)
+
+    edges2 = []
+    for unit_point in all_units_positions:
+        for neigh_y, neigh_x in g.adj[unit_point]:
+            edges2.append(((neigh_y, neigh_x), unit_point, 90))
+    g.add_weighted_edges_from(edges2)
     return g
 
 
-def path_find(start, finish, graph):
-    """
-    :param points: кол-во очков пути юнита
-    :param start: стартовая node
-    :param finish: конечная node
-    :param graph: граф юнита
-    :return: восстановленный путь start->end
-    """
-    # shortest_path = nx.dijkstra_path(graph, start, finish)
-    # соседи 0.0  ->   {'0.1': {'weight': 9000}, '1.0': {'weight': 9000}, '1.1': {'weight': 9000}}
-    # s = g_inf.adj['0.0']
-    # вес ребра = G[node1][node2]['weight']
-
-    shortest_path = nx.astar_path(graph, start, finish)  # алгоритм A*  результат вида [(0, 1), (1, 2), (1, 3), ]
-
-    def len_path(path_list):
-        """
-        проходим по списку nodes и суммируем вес рёбер
-        Это лучше, чем ещё раз считать функцией
-        nx.dijkstra_path_length(graph, start, finish)"""
-        len_p = 0
-        l, r = 0, 1
-        while r != len(path_list):
-            len_p += graph[path_list[l]][path_list[r]]['weight']
-            l += 1
-            r += 1
-        return len_p
-
-    print("путь пересчитан: ", shortest_path, "Длина пути=: ", len_path(shortest_path))
-    return shortest_path
-
-
-def get_allowed_oblast(unit_obj, start):
+def get_allowed_oblast(unit_object, start):
     """Формируем словарь разрешённых для посещения точек с помощью алгоритма Дейкстры
     Добавляем только те, до которых хватит очков перемещения"""
-    graph = unit_obj.link_to_graph
+    graph = unit_object.link_to_graph
 
     oblast_rez = dict()
 
     oblast_dict = nx.single_source_dijkstra_path_length(graph, start,)
-    print(" В ОБЩЕЙ ОБЛАСТИ (4, 5)", oblast_dict[(4, 5)])
-    print(" В ОБЩЕЙ ОБЛАСТИ (2, 3)", oblast_dict[(2, 3)])
+
     for node, sum_weight in oblast_dict.items():
-        if sum_weight <= unit_obj.path_points:
+        if sum_weight <= unit_object.path_points:
             oblast_rez[node] = sum_weight
     return oblast_rez
 
 
-def peres4et_puti(ramka_obj, unit_obj):
-    start = m.link_to_path.start_position
+def peres4et_puti(ramka_obj, unit_object, link_to_path):
+
+    start = link_to_path.start_position
 
     if start == ramka_obj.get_koordinate():  # Путь из двух одинаковых точек
-        m.link_to_path.set_list_path([start, start])
-        print("ПУТЬ из начала в начало", m.link_to_path.list_path)
-
+        link_to_path.set_list_path([start, start])
+        print("ПУТЬ из начала в начало", link_to_path.list_path)
+        return link_to_path
     else:
-        path_list = path_find(start, ramka_obj.get_koordinate(), unit_obj.link_to_graph)  # ф-ция расчёта пути
-        m.link_to_path.set_list_path(path_list)
+
+        path_list = nx.astar_path(unit_object.link_to_graph, start, ramka_obj.get_koordinate())  # алгоритм A*  результат вида [(0, 1), (1, 2), (1, 3), ]
+        link_to_path.set_list_path(path_list)
+        return link_to_path
 
 
-def graph_redacting(graph, settings_obj, ):
+def graph_redacting(start_point, settings_obj, massive, all_units_positions):
     """изменяет граф в соответствии с изменяемыми координатами юнитов,
-    сейчас они хранятся в общем множестве set_all_units
-
     Нужно вызывать эту функцию при каждом перемещении юнита"""
+    unit = all_units_positions.pop(start_point)  # удаляем из общего словаря стартовую точку,
+    graph = unit.link_to_graph
+    start_point = unit.get_list_path()[0]
+    end_point = unit.get_list_path()[-1]
+    weights = unit.weights
+
+    # увеличение весов к последней точке пути
     edges = []
-    for y, x in units_location_s.set_all_units:  # увеличение весов
-        for neigh_y, neigh_x in graph.adj[(y, x)]:
-            edges.append(((neigh_y, neigh_x), (y, x), settings_obj.max_value))
+    for neigh_y, neigh_x in graph.adj[end_point]:
+        edges.append(((neigh_y, neigh_x), end_point, settings_obj.max_value))
     graph.add_weighted_edges_from(edges)  # изменение весов рёбер к занятым точкам
 
-    # возвращение предыдущего состояния
-    edges_orig = []
-    # вес ребра = G[node1][node2]['weight']
-    diff_set = m.set_all_units_copy - units_location_s.set_all_units # вычесть те позиции, которые остались занятыми
-    print(diff_set, "DIFF SET")
-    if diff_set:
-        for y, x in diff_set:
-            for neigh_y, neigh_x in graph.adj[(y, x)]:  # получаем оригинальный вес ребра, от освобождённой точки к соседям
-                orig_weight = graph[(y, x)][neigh_y, neigh_x]['weight']
-                edges_orig.append(((neigh_y, neigh_x), (y, x), orig_weight))
-        graph.add_weighted_edges_from(edges_orig)  # изменение весов освобождённых точек
+    # восстановление весов освобождённой точки(первой точки пути)
+    edges_orig = restore_weights(graph, massive, weights, start_point)
+    graph.add_weighted_edges_from(edges_orig)  # изменение весов освобождённых точек
 
-    m.set_all_units_copy = units_location_s.set_all_units.copy()    # теперь сохраняются текущие координаты
+    """ПРОБЛЕМА: ВОЗНИКАЕТ РЕБРО В ВИДЕ ПЕТЛИ, КОТОРОЕ ПОКА НЕ ВЛИЯЕТ НИ НА ЧТО"""
 
-    return graph
+    for unit in all_units_positions.values():
+        unit.link_to_graph = graph
 
 
 
+def restore_weights(graph, massive, weights, start_point):
+    """Восстановление рёбер по куску оригинальной карты(3, 5 или 8 соседей)"""
+
+    edges = []
+    p_y, p_x = start_point
+    for n_y, n_x in graph.adj[start_point]:
+        max_value = max(weights.values())
+        if weights[massive[p_y][p_x]] == max_value:  # если стартовая была непроходимой (на всякий случай)
+            edges.append(((n_y, n_x),
+                          start_point,
+                          max(weights[massive[p_y][p_x]], weights[massive[n_y][n_x]]))
+                         )
+            edges.append((start_point,
+                          (n_y, n_x),  # если соседняя со стартовой была непроходимой
+                          min(weights[massive[p_y][p_x]], weights[massive[n_y][n_x]]))
+                         )
+
+        elif weights[massive[n_y][n_x]] == max_value:
+            edges.append(((n_y, n_x),
+                          start_point,
+                          min(weights[massive[p_y][p_x]], weights[massive[n_y][n_x]]))
+                         )
+            edges.append(((p_y, p_x),
+                          start_point,
+                          max(weights[massive[p_y][p_x]], weights[massive[n_y][n_x]]))
+                         )
+
+        else:
+            edges.append(((p_y, p_x),  # то же правило, что и при создании карты
+                          (n_y, n_x),
+                          max(weights[massive[p_y][p_x]], weights[massive[n_y][n_x]]))
+                         )
+            edges.append(((n_y, n_x),
+                          (p_y, p_x),
+                          max(weights[massive[p_y][p_x]], weights[massive[n_y][n_x]]))
+                         )
+
+    return edges
+
+
+# shortest_path = nx.dijkstra_path(graph, start, finish)
+# s = g_inf.adj['0.0']
+# вес ребра = G[node1][node2]['weight']
 
 '''
 # Визуализация графа в браузере, чтобы использовать нужно установить algorithmx

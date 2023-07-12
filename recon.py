@@ -4,7 +4,7 @@ from pygame.sprite import Sprite
 
 class Recon(Sprite):
     """розвiдка"""
-    def __init__(self, id, x, y, settings_obj, screen, changed_graph):
+    def __init__(self, id, x, y, settings_obj, screen):
         super().__init__()
         self.settings_obj = settings_obj
         self.screen = screen
@@ -26,22 +26,21 @@ class Recon(Sprite):
         self.path_points = settings_obj.recon_points
         self.weights = settings_obj.weights_track
 
-        #self.type_un = "recon"
+        self.link_to_graph = None
+        self.link_to_path = None
 
-        self.link_to_graph = changed_graph
 
     def draw_recon(self):
         self.screen.blit(self.image, self.rect)
 
     def update(self):
-        if self.path_list and (self.rect.x, self.rect.y) == self.path_list[-1]:
+        if self.path_list and self.get_koordinate() == self.path_list[-1]:
             self.path_list = []
 
-        elif self.path_list and (self.rect.x, self.rect.y) != self.path_list[-1]:
-            print("БЫЛ ПЕРЕМЕЩЁН")
-            for x, y in self.path_list:
-                self.rect.x = x
-                self.rect.y = y
+        elif self.path_list and self.get_koordinate() != self.path_list[-1]:
+            for y, x in self.path_list:
+                self.rect.x = x * self.spr
+                self.rect.y = y * self.spr
                 self.__update_coordinate()
 
     def __update_coordinate(self):
@@ -51,7 +50,8 @@ class Recon(Sprite):
         return self.curr_koord
 
     def set_list_path(self, list_p):
-        for y, x in list_p:
-            x = x * self.spr
-            y = y * self.spr
-            self.path_list.append((x, y))
+        self.path_list = list_p
+
+    def get_list_path(self):
+        return self.path_list
+

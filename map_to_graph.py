@@ -159,7 +159,6 @@ def graph_redacting(start_point, settings_obj, massive, all_units_positions):
     if start_point != end_point:  # только в этом случае удаляем старт, поскольку сохранение произошло до этого
         all_units_positions.pop(start_point)
 
-
     # увеличение весов к последней точке пути
     edges = []
     for neigh_y, neigh_x in graph.adj[end_point]:

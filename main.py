@@ -36,7 +36,7 @@ def vidiya_game():
 
         recon_s.update()
 
-        game_function_1.check_events(screen, settings_obj, ramka_obj, path_s, recon_s, map_massive)
+        game_function_1.check_events(screen, settings_obj, ramka_obj, path_s, map_massive)
         game_function_1.update_screen(screen, map_elements, ramka_obj, path_s, recon_s)
 
         pygame.display.flip()

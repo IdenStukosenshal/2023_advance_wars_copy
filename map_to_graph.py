@@ -140,12 +140,12 @@ def peres4et_puti(ramka_obj, unit_object, link_to_path):
     if start == ramka_obj.get_koordinate():  # Путь из двух одинаковых точек
         link_to_path.set_list_path([start, start])
         print("ПУТЬ из начала в начало", link_to_path.list_path)
-        return link_to_path
+        #return link_to_path
     else:
-
         path_list = nx.astar_path(unit_object.link_to_graph, start, ramka_obj.get_koordinate())  # алгоритм A*  результат вида [(0, 1), (1, 2), (1, 3), ]
         link_to_path.set_list_path(path_list)
-        return link_to_path
+        print("идёт пересчёт пути", path_list)
+        #return link_to_path
 
 
 def graph_redacting(start_point, settings_obj, massive, all_units_positions):
@@ -153,8 +153,8 @@ def graph_redacting(start_point, settings_obj, massive, all_units_positions):
     Нужно вызывать эту функцию при каждом перемещении юнита"""
     unit = all_units_positions.pop(start_point)  # удаляем из общего словаря стартовую точку,
     graph = unit.link_to_graph
-    start_point = unit.get_list_path()[0]
-    end_point = unit.get_list_path()[-1]
+    start_point = unit.get_unit_path()[0]
+    end_point = unit.get_unit_path()[-1]
     weights = unit.weights
 
     # увеличение весов к последней точке пути

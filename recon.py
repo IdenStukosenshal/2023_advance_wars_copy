@@ -29,7 +29,6 @@ class Recon(Sprite):
         self.link_to_graph = None
         self.link_to_path = None
 
-
     def draw_recon(self):
         self.screen.blit(self.image, self.rect)
 
@@ -49,9 +48,9 @@ class Recon(Sprite):
     def get_koordinate(self):
         return self.curr_koord
 
-    def set_list_path(self, list_p):
+    def set_unit_path(self, list_p):
         self.path_list = list_p
 
-    def get_list_path(self):
+    def get_unit_path(self):
         return self.path_list
 

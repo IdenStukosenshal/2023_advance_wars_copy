@@ -13,30 +13,6 @@ def file_map_to_massive(file_name):
     return m
 
 
-def massive_to_graph(massive, weights):
-    """Принимает массив, nodes, weights
-    Возвращает взвешенный граф
-    nodes типа (0,0), (0,1),
-     где первое число это y(номер строки), второе х(номер столбца)
-
-     """
-    print("Граф создан")
-    g_inf = nx.Graph()
-    edges = []
-    len_massive = len(massive)
-    len_line = len(massive[0])
-    for i in range(0, len_massive, 1):
-        for j in range(0, len_line, 1):  # формирование массива edges = [( (y,x), (y,x), weight ), ]
-            for k_i, k_j in ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)):
-                if 0 <= i + k_i < len_massive and 0 <= j + k_j < len_line:
-                    edges.append(((i, j),
-                                  (i + k_i, j + k_j),
-                                  max(weights[massive[i][j]], weights[massive[i + k_i][j + k_j]]))
-                                 )
-    g_inf.add_weighted_edges_from(edges)
-    return g_inf
-
-
 def massive_to_graph_to_helicopter(massive):
     """Для helicopter все веса == 1"""
     g_heli = nx.Graph()
@@ -57,14 +33,10 @@ def massive_to_graph_to_helicopter(massive):
 
 def experimental_digraph(massive, weights, all_units_positions):
     """Если на карте есть недостижимые точки(с максимальным весом) при пострении графа
-     рёбра направленнные к ним имеют максимальный вес,
-    направленные от них имеют вес соседней точки.
-
-    На обычных участках карты рёбра симметричны(по весам), если клетка становится занятой,
-     рёбра к ней будут иметь максимальный вес, а рёбра от неё обычный,
-      после освобождения можно восстановить исходные веса по оставшимся рёбрам.
-
-      Также юнит сможет передвигаться со своей занятой клетки, но не сможет занять занятую.
+     рёбра направленнные к ним и от них имеют максимальный вес.
+    На обычных участках карты рёбра симметричны(max, по весу), если клетка становится занятой,
+     рёбра к ней будут иметь максимальный вес, а рёбра от неё не изменятся,
+      чтобы юнит смог покинуть занятую клетку, но не смог занять занятую.
 
       Объекты одного класса будут иметь ссылку на один и тот же граф."""
 
@@ -73,47 +45,25 @@ def experimental_digraph(massive, weights, all_units_positions):
     edges = []
     len_massive = len(massive)
     len_line = len(massive[0])
+    max_value = weights['inaccessible']
     for i in range(0, len_massive, 1):
         for j in range(0, len_line, 1):  # формирование массива edges = [( (y,x), (y,x), weight ), ]
             for k_i, k_j in ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)):
                 if 0 <= i + k_i < len_massive and 0 <= j + k_j < len_line:
-                    max_value = max(weights.values())  #
-
-                    if weights[massive[i][j]] == max_value:
-                        edges.append(((i + k_i, j + k_j),
-                                      (i, j),
-                                      max(weights[massive[i][j]], weights[massive[i + k_i][j + k_j]]))
-                                     )
-                        edges.append(((i, j),
-                                      (i + k_i, j + k_j),
-                                      min(weights[massive[i][j]], weights[massive[i + k_i][j + k_j]]))
-                                     )
-
-                    elif weights[massive[i + k_i][j + k_j]] == max_value:
-                        edges.append(((i + k_i, j + k_j),
-                                      (i, j),
-                                      min(weights[massive[i][j]], weights[massive[i + k_i][j + k_j]]))
-                                     )
-                        edges.append(((i, j),
-                                      (i + k_i, j + k_j),
-                                      max(weights[massive[i][j]], weights[massive[i + k_i][j + k_j]]))
-                                     )
-
-                    else:
-                        edges.append(((i, j),
-                                      (i + k_i, j + k_j),
-                                      max(weights[massive[i][j]], weights[massive[i + k_i][j + k_j]]))
-                                     )
-                        edges.append(((i + k_i, j + k_j),
-                                      (i, j),
-                                      max(weights[massive[i][j]], weights[massive[i + k_i][j + k_j]]))
-                                     )
+                    edges.append(((i, j),
+                                  (i + k_i, j + k_j),
+                                  max(weights[massive[i][j]], weights[massive[i + k_i][j + k_j]]))
+                                 )
+                    edges.append(((i + k_i, j + k_j),
+                                  (i, j),
+                                  max(weights[massive[i][j]], weights[massive[i + k_i][j + k_j]]))
+                                 )
     g.add_weighted_edges_from(edges)
 
     edges2 = []
     for unit_point in all_units_positions:
         for neigh_y, neigh_x in g.adj[unit_point]:
-            edges2.append(((neigh_y, neigh_x), unit_point, 90))
+            edges2.append(((neigh_y, neigh_x), unit_point, max_value))
     g.add_weighted_edges_from(edges2)
     return g
 
@@ -144,9 +94,9 @@ def peres4et_puti(ramka_obj, unit_object, link_to_path):
         path_list = nx.astar_path(unit_object.link_to_graph, start, ramka_obj.get_koordinate())  # алгоритм A*  результат вида [(0, 1), (1, 2), (1, 3), ]
         link_to_path.set_list_path(path_list)
 
-    def len_path(link_to_path, ):
-        a_dict = link_to_path.get_allowed_obl()
-        p_list = link_to_path.get_list_path()
+    def len_path(link_t_pat, ):
+        a_dict = link_t_pat.get_allowed_obl()
+        p_list = link_t_pat.get_list_path()
         end = p_list[-1]
         return a_dict[end]
     count_points = len_path(link_to_path)
@@ -155,71 +105,55 @@ def peres4et_puti(ramka_obj, unit_object, link_to_path):
 
 def graph_redacting(start_point, settings_obj, massive, all_units_positions):
     """изменяет граф в соответствии с изменяемыми координатами юнитов,
-    Нужно вызывать эту функцию при каждом перемещении юнита"""
+    Нужно вызывать эту функцию при каждом перемещении юнита,
+    все рёбра, связанные со стартовой и конечной точкой
+
+    + Возможно каким-то непонятным способом образуется 9-ое ребро из задействованной точки, это петля, пока ни на что не влияет
+    """
     unit = all_units_positions[start_point]
     graph = unit.link_to_graph
     start_point = unit.get_unit_path()[0]
     end_point = unit.get_unit_path()[-1]
     weights = unit.weights
-
+    max_value = weights['inaccessible']
     if start_point != end_point:  # только в этом случае удаляем старт, поскольку сохранение произошло до этого
         all_units_positions.pop(start_point)
 
-    # восстановление весов освобождённой точки(первой точки пути)
-    edges_orig = restore_weights(graph, massive, weights, start_point)
-    graph.add_weighted_edges_from(edges_orig)  # изменение весов освобождённых точек
+    edges = restore_weights(graph, massive, weights, start_point)
+    graph.add_weighted_edges_from(edges)
 
-    # увеличение весов ко всем занятым точкам, потому что восстановление весов межет испортить занятую точку
-    edges = []
-    for node in all_units_positions.keys():
-        for neigh_y, neigh_x in graph.adj[node]:
-            edges.append(((neigh_y, neigh_x), node, settings_obj.max_value))
-    graph.add_weighted_edges_from(edges)  # изменение весов рёбер к занятым точкам
+    edges = end_point_weighting(graph, max_value, end_point)
+    graph.add_weighted_edges_from(edges)
 
-    for unit in all_units_positions.values():
+    for unit in all_units_positions.values():  # изменение графа у всех юнитов
         unit.link_to_graph = graph
 
-def restore_weights(graph, massive, weights, start_point):
-    """Восстановление рёбер по куску оригинальной карты(3, 5 или 8 соседей)"""
 
+def restore_weights(graph, massive, weights, start_point):
+    """Восстановление только входящих рёбер к стартовой точке по куску оригинальной карты(3, 5 или 8 соседей)
+    Исходящие не были затронуты"""
     edges = []
     p_y, p_x = start_point
     for n_y, n_x in graph.adj[start_point]:
-        max_value = max(weights.values())
-        if weights[massive[p_y][p_x]] == max_value:  # если стартовая была непроходимой (на всякий случай)
-            edges.append(((n_y, n_x),
-                          start_point,
-                          max(weights[massive[p_y][p_x]], weights[massive[n_y][n_x]]))
-                         )
-            edges.append((start_point,
-                          (n_y, n_x),  # если соседняя со стартовой была непроходимой
-                          min(weights[massive[p_y][p_x]], weights[massive[n_y][n_x]]))
-                         )
-        elif weights[massive[n_y][n_x]] == max_value:
-            edges.append(((n_y, n_x),
-                          start_point,
-                          min(weights[massive[p_y][p_x]], weights[massive[n_y][n_x]]))
-                         )
-            edges.append((start_point,
-                          (n_y, n_x),
-                          max(weights[massive[p_y][p_x]], weights[massive[n_y][n_x]]))
-                         )
+        edges.append(((n_y, n_x),
+                      start_point,
+                      max(weights[massive[p_y][p_x]], weights[massive[n_y][n_x]]))
+                     )
+    return edges
 
-        else:
-            edges.append((start_point,  # то же правило, что и при создании карты
-                          (n_y, n_x),
-                          max(weights[massive[p_y][p_x]], weights[massive[n_y][n_x]]))
-                         )
-            edges.append(((n_y, n_x),
-                          start_point,
-                          max(weights[massive[p_y][p_x]], weights[massive[n_y][n_x]]))
-                         )
+
+def end_point_weighting(graph, max_value, end_point):
+    """утяжеление весов рёбер к занятой точке"""
+    edges = []
+    for neigh_y, neigh_x in graph.adj[end_point]:
+        edges.append(((neigh_y, neigh_x), end_point, max_value))
     return edges
 
 
 # shortest_path = nx.dijkstra_path(graph, start, finish)
 # s = g_inf.adj['0.0']
 # вес ребра = G[node1][node2]['weight']
+
 
 '''
 # Визуализация графа в браузере, чтобы использовать нужно установить algorithmx

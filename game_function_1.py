@@ -132,10 +132,10 @@ def create_my_army(map_massive, screen, settings_obj, recon_s):
 
     def create_recon_squad(map_massive, screen, settings_obj, recon_s, all_units_positions):
         recon_weights = settings_obj.weights_track
-        for id, yx in enumerate(recon_positions):
+        for yx in recon_positions:
             y = yx[0] * settings_obj.w_and_h_sprite_map
             x = yx[1] * settings_obj.w_and_h_sprite_map
-            new_rec = Recon(id, x, y, settings_obj, screen)
+            new_rec = Recon(x, y, settings_obj, screen)
             all_units_positions[(yx[0], yx[1])] = new_rec  # добавление в общий словарь
             recon_s.add(new_rec)
         recon_graph = experimental_digraph(map_massive, recon_weights, all_units_positions)
@@ -145,19 +145,16 @@ def create_my_army(map_massive, screen, settings_obj, recon_s):
     create_recon_squad(map_massive, screen, settings_obj, recon_s, all_units_positions)
 
 
-
-
 def update_screen(screen, map_elements, ramka_obj, path_s, recon_s):
     #for map_elem in map_elements.sprites():
         #map_elem.draw_map()
     # path_s.draw(screen)
     map_elements.draw(screen)
 
-    for rec in recon_s.sprites():
-        rec.draw_recon()
-
     for path in path_s.sprites():
         path.draw_path()
+    for rec in recon_s.sprites():
+        rec.draw_recon()
 
     ramka_obj.draw_ramka()
 

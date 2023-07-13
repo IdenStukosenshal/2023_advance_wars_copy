@@ -8,5 +8,3 @@ def peredau():
 
     ft2.moving_right_in_oblast(unit_object)
 
-peredau()
-print(unit_object)

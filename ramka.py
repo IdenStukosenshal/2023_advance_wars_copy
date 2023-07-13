@@ -7,21 +7,16 @@ class Ramka(Sprite):
         super().__init__()
         self.settings_obj = settings_obj
         self.screen = screen
-
         self.ramka = pygame.image.load("assets/ramka.png")
         self.ramka.set_colorkey((0, 128, 0))  # делаем фон прозрачным
-
         self.rect = self.ramka.get_rect()
         self.rect.x = x
         self.rect.y = y
-
         self.move_left = False
         self.move_right = False
         self.move_up = False
         self.move_down = False
-
         self.spr_razm = self.settings_obj.w_and_h_sprite_map  # Для краткости
-
         self.y_x_to_graph = ((y // self.spr_razm), (x // self.spr_razm))  # текущая координата
 
     def draw_ramka(self):
@@ -56,7 +51,7 @@ class Ramka(Sprite):
         self.y_x_to_graph = ( (self.rect.y // self.spr_razm), (self.rect.x // self.spr_razm) )
 
     def get_koordinate(self):
-
+        self.__update_coordinate()
         return self.y_x_to_graph
 
 

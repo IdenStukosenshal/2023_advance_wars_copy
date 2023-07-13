@@ -100,7 +100,7 @@ def peres4et_puti(ramka_obj, unit_object, link_to_path):
         end = p_list[-1]
         return a_dict[end]
     count_points = len_path(link_to_path)
-    #print(f"будет израсходованно {count_points} очков из {unit_object.path_points} на пути: {link_to_path.get_list_path()}")
+    print(f"будет израсходованно {count_points} очков из {unit_object.path_points} на пути: {link_to_path.get_list_path()}")
 
 
 def graph_redacting(start_point, settings_obj, massive, all_units_positions):

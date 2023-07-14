@@ -18,6 +18,8 @@ chang_path_global = False
 
 all_units_positions = dict()
 
+flag = True
+
 
 def push_the_lever():
     """Эта функция вызывается при нажатии кнопки действия
@@ -40,33 +42,37 @@ def check_events(screen, settings_obj, ramka_obj, path_s, map_massive):
 
 
 def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_massive):
-    global unit_object, all_units_positions, chang_path_global
+    global unit_object, all_units_positions, chang_path_global, flag
     if event.key == pygame.K_SPACE:
         ramka_koord = ramka_obj.get_koordinate()
-        if ramka_koord in all_units_positions.keys() and chang_path_global is False:
+        """Костыль(flag) убирает вылет когда юнит находится в пути,
+         но выбирается его пункт назначения."""
+        flag = True
+        for unit in all_units_positions.values():
+            if unit.get_u_koordinate() not in all_units_positions.keys():  #
+                flag = False
 
-            unit_object = all_units_positions[ramka_obj.get_koordinate()]
+        if ramka_koord in all_units_positions.keys() and chang_path_global is False and flag:
 
+            unit_object = all_units_positions[ramka_obj.get_koordinate()]  # получить ссылку на объект юнита
             push_the_lever()
-
             path_line = PathElement(screen, settings_obj, ramka_koord)  # создали объект пути
-            path_s.add(path_line)
-
-            allowed_obl = get_allowed_oblast(unit_object, ramka_koord)
-
+            path_s.add(path_line)  # добавили в группу
+            allowed_obl = get_allowed_oblast(unit_object, ramka_koord)  # получаем разрешённую область
             path_line.set_allowed_obl(allowed_obl)  # назначена разрешённая область
 
-            unit_object.link_to_path = path_line # сохраняем объект пути в экземпляре передвигаемого юнита
+            unit_object.link_to_path = path_line  # сохраняем объект пути в экземпляре передвигаемого юнита
 
         elif chang_path_global:
+            # окончательное назначение пути
             push_the_lever()
             path_u = unit_object.link_to_path.get_list_path()
             for unit in all_units_positions.values():
-                if path_u[0] == unit.get_koordinate():  # выбор перемещаемого
+                if path_u[0] == unit.get_u_koordinate():  # найти юнит
                     unit.set_unit_path(path_u)  # присваиваем юниту его путь
-
             all_units_positions[path_u[-1]] = unit_object  # сохраняем будущую позицию и юнита
-            graph_redacting(unit_object.get_unit_path()[0], settings_obj, map_massive, all_units_positions)
+            graph_redacting(unit_object.get_u_koordinate(), settings_obj, map_massive, all_units_positions)
+            # редактируем рёбра к стартовой и к конечной точке
 
             del unit_object.link_to_path
             for path in path_s.copy():
@@ -115,7 +121,6 @@ def create_map(map_massive, settings_obj, screen, map_elements):
     Координаты, элемент массива, объект screen передаются в конструктор класса MapElement
 
     каждый элемент добавляется в группу
-
     """
 
     for i in range(len(map_massive)):
@@ -129,20 +134,20 @@ def create_map(map_massive, settings_obj, screen, map_elements):
 
 def create_my_army(map_massive, screen, settings_obj, recon_s):
     global all_units_positions
-
-    def create_recon_squad(map_massive, screen, settings_obj, recon_s, all_units_positions):
-        recon_weights = settings_obj.weights_track
-        for yx in recon_positions:
-            y = yx[0] * settings_obj.w_and_h_sprite_map
-            x = yx[1] * settings_obj.w_and_h_sprite_map
-            new_rec = Recon(x, y, settings_obj, screen)
-            all_units_positions[(yx[0], yx[1])] = new_rec  # добавление в общий словарь
-            recon_s.add(new_rec)
-        recon_graph = experimental_digraph(map_massive, recon_weights, all_units_positions)
-        for recon in recon_s:
-            recon.link_to_graph = recon_graph
-
     create_recon_squad(map_massive, screen, settings_obj, recon_s, all_units_positions)
+
+
+def create_recon_squad(map_massive, screen, settings_obj, recon_s, all_units_positions):
+    recon_weights = settings_obj.weights_track
+    for yx in recon_positions:
+        y = yx[0] * settings_obj.w_and_h_sprite_map
+        x = yx[1] * settings_obj.w_and_h_sprite_map
+        new_rec = Recon(x, y, settings_obj, screen)
+        all_units_positions[(yx[0], yx[1])] = new_rec  # добавление в общий словарь
+        recon_s.add(new_rec)
+    recon_graph = experimental_digraph(map_massive, recon_weights, all_units_positions)
+    for recon in recon_s:
+        recon.link_to_graph = recon_graph
 
 
 def update_screen(screen, map_elements, ramka_obj, path_s, recon_s):

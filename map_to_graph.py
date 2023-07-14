@@ -14,7 +14,9 @@ def file_map_to_massive(file_name):
 
 
 def massive_to_graph_to_helicopter(massive):
-    """Для helicopter все веса == 1"""
+    """Для helicopter все веса == 1
+
+    Нужно переделать на двунаправленный"""
     g_heli = nx.Graph()
     edges = []
     len_massive = len(massive)
@@ -65,12 +67,15 @@ def experimental_digraph(massive, weights, all_units_positions):
         for neigh_y, neigh_x in g.adj[unit_point]:
             edges2.append(((neigh_y, neigh_x), unit_point, max_value))
     g.add_weighted_edges_from(edges2)
+
+    """Это можно переделать, добавлять рёбра в самом процессе, а не после"""
     return g
 
 
 def get_allowed_oblast(unit_object, start):
     """Формируем словарь разрешённых для посещения точек с помощью алгоритма Дейкстры
-    Добавляем только те, до которых хватит очков перемещения"""
+    Добавляем только те, до которых хватит очков перемещения
+    возвращает словарь вида {(6, 6): 6.0, (6, 7): 6.0, ...}"""
     graph = unit_object.link_to_graph
 
     oblast_rez = dict()
@@ -84,14 +89,17 @@ def get_allowed_oblast(unit_object, start):
 
 
 def peres4et_puti(ramka_obj, unit_object, link_to_path):
+    """Вызывается при каждом перемещении рамки после выбора юнита, присваивает объекту пути
+    список пути вида [(0, 1), (1, 2), (1, 3), ...]"""
 
     start = link_to_path.start_position
 
-    if start == ramka_obj.get_koordinate():  # Путь из двух одинаковых точек
-        link_to_path.set_list_path([start, start])
+    if start == ramka_obj.get_koordinate():
+        link_to_path.set_list_path([start])
+        # это для того, чтобы обнулить путь при возвращении рамки на юнита, иначе остаться на месте не получится
 
     else:
-        path_list = nx.astar_path(unit_object.link_to_graph, start, ramka_obj.get_koordinate())  # алгоритм A*  результат вида [(0, 1), (1, 2), (1, 3), ]
+        path_list = nx.astar_path(unit_object.link_to_graph, start, ramka_obj.get_koordinate())  # алгоритм A*
         link_to_path.set_list_path(path_list)
 
     def len_path(link_t_pat, ):
@@ -100,7 +108,7 @@ def peres4et_puti(ramka_obj, unit_object, link_to_path):
         end = p_list[-1]
         return a_dict[end]
     count_points = len_path(link_to_path)
-    print(f"будет израсходованно {count_points} очков из {unit_object.path_points} на пути: {link_to_path.get_list_path()}")
+    #print(f"будет израсходованно {count_points} очков из {unit_object.path_points} на пути: {link_to_path.get_list_path()}")
 
 
 def graph_redacting(start_point, settings_obj, massive, all_units_positions):
@@ -108,7 +116,8 @@ def graph_redacting(start_point, settings_obj, massive, all_units_positions):
     Нужно вызывать эту функцию при каждом перемещении юнита,
     все рёбра, связанные со стартовой и конечной точкой
 
-    + Возможно каким-то непонятным способом образуется 9-ое ребро из задействованной точки, это петля, пока ни на что не влияет
+    + Возможно каким-то непонятным способом образуется 9-ое ребро из задействованной точки,
+    проверить
     """
     unit = all_units_positions[start_point]
     graph = unit.link_to_graph
@@ -116,6 +125,7 @@ def graph_redacting(start_point, settings_obj, massive, all_units_positions):
     end_point = unit.get_unit_path()[-1]
     weights = unit.weights
     max_value = weights['inaccessible']
+
     if start_point != end_point:  # только в этом случае удаляем старт, поскольку сохранение произошло до этого
         all_units_positions.pop(start_point)
 
@@ -125,7 +135,7 @@ def graph_redacting(start_point, settings_obj, massive, all_units_positions):
     edges = end_point_weighting(graph, max_value, end_point)
     graph.add_weighted_edges_from(edges)
 
-    for unit in all_units_positions.values():  # изменение графа у всех юнитов
+    for unit in all_units_positions.values():  # изменение графа у всех юнитов чтобы не осталось персональной копии
         unit.link_to_graph = graph
 
 
@@ -160,10 +170,12 @@ def end_point_weighting(graph, max_value, end_point):
 import algorithmx
 from algorithmx.networkx import add_graph
 
+all_units_positions = [(2, 3), (4, 5)]
 file_name1 = "map_tests.txt"
-map_massive = file_map_to_massive(file_name1)
-weights_track_tests = {'#': 1.5, 'd': 1, 'f': 1.75, '@': 9000, 'v': 9000, 't': 1}
-graph = experimental_digraph(map_massive, weights_track_tests)
+file_name2 = "map_1.txt"
+map_massive = file_map_to_massive(file_name2)
+weights_track_tests = {'#': 1.5, 'd': 1, 'f': 2, '@': 90, 'v': 90, 't': 1.125, 'inaccessible': 90}
+graph = experimental_digraph(map_massive, weights_track_tests, all_units_positions)
 
 
 def draw_in_browser(graph):
@@ -178,14 +190,5 @@ def draw_in_browser(graph):
     canvas.onmessage('start', start)
     server.start()
 
-
-def test_path_finding():
-    start = (0, 1)
-    finish = (1, 15)
-    path = path_find(start, finish, graph,)
-    print(path)
-
-
-#test_path_finding()
 #draw_in_browser(graph)
 '''

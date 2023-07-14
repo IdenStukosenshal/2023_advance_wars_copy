@@ -10,7 +10,7 @@ class PathElement(Sprite):
         self.screen = screen
         self.settings_obj = settings_obj
         self.start_position = start_position
-        self.list_path = [start_position, start_position]  # для возможности остаться на своей позиции без перемещения
+        self.list_path = [start_position]  # для возможности остаться на своей позиции без перемещения
         self.allowed_oblast_list = None
         self.spr_rzm = self.settings_obj.w_and_h_sprite_map
 
@@ -19,7 +19,7 @@ class PathElement(Sprite):
             koord_list = self.__allowed_oblast_to_koordinate(self.allowed_oblast_list)
             self.__drawing_oblast(koord_list)
 
-        if len(self.list_path) > 1 and self.list_path[0] != self.list_path[1]: # временное решение, путь отображается только вместе с областью
+        if self.list_path and len(self.list_path) > 1:
             path_koord_list = self.__list_path_to_koordinate(self.list_path)
             pygame.draw.lines(self.screen, (0, 200, 200), False, path_koord_list, 3)
 
@@ -43,6 +43,7 @@ class PathElement(Sprite):
         return rez_path_massive
 
     def __drawing_oblast(self, koord_list):
+        """Рисует разрешённую область по списку координат"""
         for x, y in koord_list:
             pygame.draw.rect(self.screen, (255, 255, 255), (x+3, y+3, self.spr_rzm-6, self.spr_rzm-6), 1)
 

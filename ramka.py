@@ -51,7 +51,6 @@ class Ramka(Sprite):
         self.y_x_to_graph = ( (self.rect.y // self.spr_razm), (self.rect.x // self.spr_razm) )
 
     def get_koordinate(self):
-        self.__update_coordinate()
         return self.y_x_to_graph
 
 

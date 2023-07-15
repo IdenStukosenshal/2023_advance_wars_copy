@@ -23,5 +23,5 @@ Requirements:
     
     Примеры скриншотов Advance wars:
 
-<img height="320" src="E:\NewPythonProjects\2023_advance_warc_copy\advance_wars_screens\16327107-advance-wars-game-boy-advance-planes-flight-range.png" width="480"/>
-<img height="320" src="E:\NewPythonProjects\2023_advance_warc_copy\advance_wars_screens\16234224-advance-wars-game-boy-advance-terrain-information-screen-movemen.png" width="480"/>
+<img height="320" src="https://cdn.mobygames.com/screenshots/16327107-advance-wars-game-boy-advance-planes-flight-range.png" width="480"/>
+<img height="320" src="https://cdn.mobygames.com/screenshots/16234224-advance-wars-game-boy-advance-terrain-information-screen-movemen.png" width="480"/>

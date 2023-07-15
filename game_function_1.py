@@ -11,7 +11,7 @@ from map_to_graph import get_allowed_oblast
 
 import moving_processing as m_p
 
-from units_location_s import recon_positions, infantry_positions
+from units_location_s import recon_positions, infantry_positions, helicopters_position
 
 unit_object = False
 chang_path_global = False

@@ -3,15 +3,15 @@ import sys
 
 from path_element import PathElement
 from map_element import MapElement
-from recon import Recon
-
+from recon_new import Recon
+from infantry import Inf
 from map_to_graph import experimental_digraph
 from map_to_graph import graph_redacting
 from map_to_graph import get_allowed_oblast
 
 import moving_processing as m_p
 
-from units_location_s import recon_positions
+from units_location_s import recon_positions, infantry_positions
 
 unit_object = False
 chang_path_global = False
@@ -102,6 +102,14 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_ma
         else:
             ramka_obj.move_down = True
 
+    if event.key ==pygame.K_BACKSPACE:
+        if chang_path_global:  # вроде работает, пока багов не замечено
+            push_the_lever()
+            del unit_object.link_to_path
+            for path in path_s.copy():
+                path_s.remove(path)
+
+
 
 def check_key_up_events(event, ramka_obj, ):
     if event.key == pygame.K_RIGHT:
@@ -135,6 +143,7 @@ def create_map(map_massive, settings_obj, screen, map_elements):
 def create_my_army(map_massive, screen, settings_obj, recon_s):
     global all_units_positions
     create_recon_squad(map_massive, screen, settings_obj, recon_s, all_units_positions)
+    create_infantry_squad(map_massive, screen, settings_obj, recon_s, all_units_positions)
 
 
 def create_recon_squad(map_massive, screen, settings_obj, recon_s, all_units_positions):
@@ -150,6 +159,21 @@ def create_recon_squad(map_massive, screen, settings_obj, recon_s, all_units_pos
         recon.link_to_graph = recon_graph
 
 
+def create_infantry_squad(map_massive, screen, settings_obj, recon_s, all_units_positions):
+    inf_weights = settings_obj.weights_inf
+    for yx in infantry_positions:
+        y = yx[0] * settings_obj.w_and_h_sprite_map  # из-за того, что размер 48X54
+        x = yx[1] * settings_obj.w_and_h_sprite_map
+        new_inf = Inf(x, y, settings_obj, screen)
+        all_units_positions[(yx[0], yx[1])] = new_inf  # добавление в общий словарь
+        recon_s.add(new_inf)
+    inf_graph = experimental_digraph(map_massive, inf_weights, all_units_positions)
+    for inf in recon_s:
+        inf.link_to_graph = inf_graph
+
+
+
+
 def update_screen(screen, map_elements, ramka_obj, path_s, recon_s):
     #for map_elem in map_elements.sprites():
         #map_elem.draw_map()
@@ -158,8 +182,8 @@ def update_screen(screen, map_elements, ramka_obj, path_s, recon_s):
 
     for path in path_s.sprites():
         path.draw_path()
-    for rec in recon_s.sprites():
-        rec.draw_recon()
+    for unit in recon_s.sprites():
+        unit.draw_gr_forc()
 
     ramka_obj.draw_ramka()
 

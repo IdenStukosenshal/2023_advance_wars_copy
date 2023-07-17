@@ -75,7 +75,7 @@ def experimental_digraph(massive, weights, all_units_positions):
 def get_allowed_oblast(unit_object, start):
     """Формируем словарь разрешённых для посещения точек с помощью алгоритма Дейкстры
     Добавляем только те, до которых хватит очков перемещения
-    возвращает словарь вида {(6, 6): 6.0, (6, 7): 6.0, ...}"""
+    возвращает словарь вида {(6, 6): 6.0, (6, 7): 7.5, ...}"""
     graph = unit_object.link_to_graph
 
     oblast_rez = dict()
@@ -100,6 +100,7 @@ def peres4et_puti(ramka_obj, unit_object, link_to_path):
 
     else:
         path_list = nx.astar_path(unit_object.link_to_graph, start, ramka_obj.get_koordinate())  # алгоритм A*
+        # A* может принимать эвристическую функцию для ускорения поиска пути или хотябы для того, чтобы сделать путь более естественным(более прямым)
         link_to_path.set_list_path(path_list)
 
     def len_path(link_t_pat, ):

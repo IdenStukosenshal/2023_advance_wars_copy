@@ -66,9 +66,9 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_ma
         elif chang_path_global:
             # окончательное назначение пути
             push_the_lever()
-            path_u = unit_object.link_to_path.get_list_path()
+            path_u = unit_object.link_to_path.get_list_path()  # список кортежей, [(y,x), (y,x)]
             for unit in all_units_positions.values():
-                if path_u[0] == unit.get_u_koordinate():  # найти юнит
+                if path_u[0] == unit.get_u_koordinate():  # найти юнит, можно сделать это по другому(unit_object)
                     unit.set_unit_path(path_u)  # присваиваем юниту его путь
             all_units_positions[path_u[-1]] = unit_object  # сохраняем будущую позицию и юнита
             graph_redacting(unit_object.get_u_koordinate(), settings_obj, map_massive, all_units_positions)
@@ -78,7 +78,7 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_ma
             for path in path_s.copy():
                 path_s.remove(path)
 
-    if event.key == pygame.K_RIGHT:
+    if event.key == pygame.K_RIGHT:  # unit_object - глобальная изменяемая переменная, поэтому функции move ничего не возвращают
         if chang_path_global:
             m_p.moving_right_in_oblast(ramka_obj, unit_object, unit_object.link_to_path)
         else:
@@ -110,7 +110,6 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_ma
                 path_s.remove(path)
 
 
-
 def check_key_up_events(event, ramka_obj, ):
     if event.key == pygame.K_RIGHT:
         ramka_obj.move_right = False
@@ -123,8 +122,7 @@ def check_key_up_events(event, ramka_obj, ):
 
 
 def create_map(map_massive, settings_obj, screen, map_elements):
-    """Получает имя файла с картой, объект screen
-    вызывает функцию, которая создаёт массив элементов из файла.
+    """Получает массив карты
     Для каждого элемента вычисляется его координаты(исходя из размера спрайта).
     Координаты, элемент массива, объект screen передаются в конструктор класса MapElement
 

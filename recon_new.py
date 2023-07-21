@@ -9,4 +9,4 @@ class Recon(GroundForces, Sprite):
         self.image = pygame.image.load("assets/rec2_64.png")
         self.path_points = settings_obj.recon_points
 
-        self.type_unit = 'recon'
+        self.type_unit = settings_obj.recon_type

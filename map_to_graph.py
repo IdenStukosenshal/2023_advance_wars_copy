@@ -134,24 +134,31 @@ def graph_redacting(start_point, settings_obj, massive, all_units_positions):
     + Возможно каким-то непонятным способом образуется 9-ое ребро из задействованной точки,
     проверить
     """
-    unit = all_units_positions[start_point]
-    graph = unit.link_to_graph
-    start_point = unit.get_unit_path()[0]
-    end_point = unit.get_unit_path()[-1]
-    weights = unit.weights
-    max_value = weights['inaccessible']
+    unit_ = all_units_positions[start_point]
+    start_point = unit_.get_unit_path()[0]
+    end_point = unit_.get_unit_path()[-1]
 
     if start_point != end_point:  # только в этом случае удаляем старт, поскольку сохранение произошло до этого
         all_units_positions.pop(start_point)
+    # изменяем графы для всех типов юнитов в соответствии с их весами
 
-    edges = restore_weights(graph, massive, weights, start_point)
-    graph.add_weighted_edges_from(edges)
+    u, gr = None, None
+    for type_unit in settings_obj.list_all_types:  # итераций по числу типов, пока всего 3
 
-    edges = end_point_weighting(graph, max_value, end_point)
-    graph.add_weighted_edges_from(edges)
+        for u in all_units_positions.values():
+            if u.type_unit == type_unit:  # находим первый юнит нужного типа
+                gr = u.link_to_graph  # берём ссылку на граф и прерываем цикл
+                break
+        weight = settings_obj.all_weights[type_unit]  # словарь self.all_weights = {'infantry': self.weights_inf ...}
+        max_value = weight['inaccessible']
+        edges = restore_weights(gr, massive, weight, start_point)
+        gr.add_weighted_edges_from(edges)
+        edges = end_point_weighting(gr, max_value, end_point)
+        gr.add_weighted_edges_from(edges)
 
-    for unit in all_units_positions.values():  # изменение графа у всех юнитов чтобы не осталось персональной копии
-        unit.link_to_graph = graph
+        for unit in all_units_positions.values():  # изменение графа у всех юнитов чтобы не осталось персональной копии
+            if unit.type_unit == type_unit:  # только для соответствующего типа
+                unit.link_to_graph = gr
 
 
 def restore_weights(graph, massive, weights, start_point):

@@ -30,6 +30,8 @@ class GroundForces(Sprite):
         self.r = 1
         self.flag = 0
 
+        self.type_unit = None
+
     def draw_gr_forc(self):
         self.screen.blit(self.image, self.rect)
 

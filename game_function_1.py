@@ -140,38 +140,54 @@ def create_map(map_massive, settings_obj, screen, map_elements):
 def create_my_army(map_massive, screen, settings_obj, gr_force_s, heli_s):
     global all_units_positions, all_heli_s_positions
 
-    create_recon_squad(map_massive, screen, settings_obj, gr_force_s, all_units_positions)
-    create_infantry_squad(map_massive, screen, settings_obj, gr_force_s, all_units_positions)
+    all_units_positions = create_recon_squad( screen, settings_obj, gr_force_s, all_units_positions)
+    temp_d = create_infantry_squad( screen, settings_obj, gr_force_s, all_units_positions)
+    all_units_positions |= temp_d  # сложение словарей
+
     create_helicopter_squad(map_massive, screen, settings_obj, heli_s, all_heli_s_positions)
 
+    preparing_graph(map_massive, settings_obj, all_units_positions, gr_force_s)
 
-def create_recon_squad(map_massive, screen, settings_obj, gr_force_s, all_units_positions):
-    recon_weights = settings_obj.weights_track
-    print(recon_weights)
+
+def create_recon_squad(screen, settings_obj, gr_force_s, all_units_positions):
+
     for yx in recon_positions:
         y = yx[0] * settings_obj.w_and_h_sprite_map
         x = yx[1] * settings_obj.w_and_h_sprite_map
         new_rec = Recon(x, y, settings_obj, screen)
         all_units_positions[(yx[0], yx[1])] = new_rec  # добавление в общий словарь
         gr_force_s.add(new_rec)
-    recon_graph = experimental_digraph(map_massive, recon_weights, all_units_positions)
-    for unit in gr_force_s:
-        if unit.type_unit == 'recon':
-            unit.link_to_graph = recon_graph
+    return all_units_positions
 
 
-def create_infantry_squad(map_massive, screen, settings_obj, gr_force_s, all_units_positions):
-    inf_weights = settings_obj.weights_inf
+def create_infantry_squad(screen, settings_obj, gr_force_s, all_units_positions):
+
     for yx in infantry_positions:
         y = yx[0] * settings_obj.w_and_h_sprite_map
         x = yx[1] * settings_obj.w_and_h_sprite_map
         new_inf = Inf(x, y, settings_obj, screen)
         all_units_positions[(yx[0], yx[1])] = new_inf  # добавление в общий словарь
         gr_force_s.add(new_inf)
+    return all_units_positions
+
+
+def preparing_graph(map_massive, settings_obj, all_units_positions, gr_force_s):
+    """
+    после добавления позиций всех юнитов в словарь создаёт граф
+     и присваивает его всем типам юнитов
+    """
+    inf_weights = settings_obj.weights_inf
+    recon_weights = settings_obj.weights_track
+
     inf_graph = experimental_digraph(map_massive, inf_weights, all_units_positions)
     for unit in gr_force_s:
         if unit.type_unit == 'infantry':
             unit.link_to_graph = inf_graph
+
+    recon_graph = experimental_digraph(map_massive, recon_weights, all_units_positions)
+    for unit in gr_force_s:
+        if unit.type_unit == 'recon':
+            unit.link_to_graph = recon_graph
 
 
 def create_helicopter_squad(map_massive, screen, settings_obj, heli_s, all_heli_s_positions):

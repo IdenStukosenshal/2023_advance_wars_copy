@@ -16,6 +16,7 @@ class Inf(GroundForces, Sprite):
         surf.set_colorkey((0, 255, 0))  # убирается цвет поверхности
         self.image = surf
 
+        self.type_unit = 'infantry'
 
 
 

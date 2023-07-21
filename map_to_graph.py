@@ -13,24 +13,38 @@ def file_map_to_massive(file_name):
     return m
 
 
-def massive_to_graph_to_helicopter(massive):
-    """Для helicopter все веса == 1
-
-    Нужно переделать на двунаправленный"""
-    g_heli = nx.Graph()
+def massive_to_graph_to_helicopter(map_massive, max_weight, all_helicopters_positions):
+    """
+    Для helicopter все веса == 1 кроме занятых точек
+    """
+    print("Граф для air_forces создан")
+    g = nx.DiGraph()
     edges = []
-    len_massive = len(massive)
-    len_line = len(massive[0])
+    len_massive = len(map_massive)
+    len_line = len(map_massive[0])
+
     for i in range(0, len_massive, 1):
-        for j in range(0, len_line, 1):  # формирование массива edges = [('a', 'b', weight)]
+        for j in range(0, len_line, 1):  # формирование массива edges = [( (y,x), (y,x), weight ), ]
             for k_i, k_j in ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)):
                 if 0 <= i + k_i < len_massive and 0 <= j + k_j < len_line:
                     edges.append(((i, j),
                                   (i + k_i, j + k_j),
                                   1)
                                  )
-    g_heli.add_weighted_edges_from(edges)
-    return g_heli
+                    edges.append(((i + k_i, j + k_j),
+                                  (i, j),
+                                  1)
+                                 )
+    g.add_weighted_edges_from(edges)
+
+    edges2 = []
+    for unit_point in all_helicopters_positions:
+        for neigh_y, neigh_x in g.adj[unit_point]:
+            edges2.append(((neigh_y, neigh_x), unit_point, max_weight))
+    g.add_weighted_edges_from(edges2)
+
+    """Это можно переделать, добавлять рёбра в самом процессе, а не после"""
+    return g
 
 
 def experimental_digraph(massive, weights, all_units_positions):
@@ -109,7 +123,7 @@ def peres4et_puti(ramka_obj, unit_object, link_to_path):
         end = p_list[-1]
         return a_dict[end]
     count_points = len_path(link_to_path)
-    #print(f"будет израсходованно {count_points} очков из {unit_object.path_points} на пути: {link_to_path.get_list_path()}")
+    print(f"будет израсходованно {count_points} очков из {unit_object.path_points} на пути: {link_to_path.get_list_path()}")
 
 
 def graph_redacting(start_point, settings_obj, massive, all_units_positions):

@@ -5,9 +5,10 @@ from path_element import PathElement
 from map_element import MapElement
 from recon_new import Recon
 from infantry import Inf
-from map_to_graph import experimental_digraph
-from map_to_graph import graph_redacting
-from map_to_graph import get_allowed_oblast
+from helicopter import Helicopter
+
+from map_to_graph import experimental_digraph, massive_to_graph_to_helicopter
+from map_to_graph import graph_redacting, get_allowed_oblast
 
 import moving_processing as m_p
 
@@ -17,6 +18,7 @@ unit_object = False
 chang_path_global = False
 
 all_units_positions = dict()
+all_heli_s_positions = dict()
 
 flag = True
 
@@ -45,6 +47,7 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_ma
     global unit_object, all_units_positions, chang_path_global, flag
     if event.key == pygame.K_SPACE:
         ramka_koord = ramka_obj.get_koordinate()
+
         """Костыль(flag) убирает вылет когда юнит находится в пути,
          но выбирается его пункт назначения."""
         flag = True
@@ -53,23 +56,19 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_ma
                 flag = False
 
         if ramka_koord in all_units_positions.keys() and chang_path_global is False and flag:
-
             unit_object = all_units_positions[ramka_obj.get_koordinate()]  # получить ссылку на объект юнита
             push_the_lever()
             path_line = PathElement(screen, settings_obj, ramka_koord)  # создали объект пути
             path_s.add(path_line)  # добавили в группу
             allowed_obl = get_allowed_oblast(unit_object, ramka_koord)  # получаем разрешённую область
             path_line.set_allowed_obl(allowed_obl)  # назначена разрешённая область
-
             unit_object.link_to_path = path_line  # сохраняем объект пути в экземпляре передвигаемого юнита
 
         elif chang_path_global:
             # окончательное назначение пути
             push_the_lever()
             path_u = unit_object.link_to_path.get_list_path()  # список кортежей, [(y,x), (y,x)]
-            for unit in all_units_positions.values():
-                if path_u[0] == unit.get_u_koordinate():  # найти юнит, можно сделать это по другому(unit_object)
-                    unit.set_unit_path(path_u)  # присваиваем юниту его путь
+            unit_object.set_unit_path(path_u)  # присваиваем юниту его путь
             all_units_positions[path_u[-1]] = unit_object  # сохраняем будущую позицию и юнита
             graph_redacting(unit_object.get_u_koordinate(), settings_obj, map_massive, all_units_positions)
             # редактируем рёбра к стартовой и к конечной точке
@@ -78,7 +77,7 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_ma
             for path in path_s.copy():
                 path_s.remove(path)
 
-    if event.key == pygame.K_RIGHT:  # unit_object - глобальная изменяемая переменная, поэтому функции move ничего не возвращают
+    if event.key == pygame.K_RIGHT:
         if chang_path_global:
             m_p.moving_right_in_oblast(ramka_obj, unit_object, unit_object.link_to_path)
         else:
@@ -138,41 +137,57 @@ def create_map(map_massive, settings_obj, screen, map_elements):
             map_elements.add(new_element)
 
 
-def create_my_army(map_massive, screen, settings_obj, recon_s):
-    global all_units_positions
-    create_recon_squad(map_massive, screen, settings_obj, recon_s, all_units_positions)
-    create_infantry_squad(map_massive, screen, settings_obj, recon_s, all_units_positions)
+def create_my_army(map_massive, screen, settings_obj, gr_force_s, heli_s):
+    global all_units_positions, all_heli_s_positions
+
+    create_recon_squad(map_massive, screen, settings_obj, gr_force_s, all_units_positions)
+    create_infantry_squad(map_massive, screen, settings_obj, gr_force_s, all_units_positions)
+    create_helicopter_squad(map_massive, screen, settings_obj, heli_s, all_heli_s_positions)
 
 
-def create_recon_squad(map_massive, screen, settings_obj, recon_s, all_units_positions):
+def create_recon_squad(map_massive, screen, settings_obj, gr_force_s, all_units_positions):
     recon_weights = settings_obj.weights_track
+    print(recon_weights)
     for yx in recon_positions:
         y = yx[0] * settings_obj.w_and_h_sprite_map
         x = yx[1] * settings_obj.w_and_h_sprite_map
         new_rec = Recon(x, y, settings_obj, screen)
         all_units_positions[(yx[0], yx[1])] = new_rec  # добавление в общий словарь
-        recon_s.add(new_rec)
+        gr_force_s.add(new_rec)
     recon_graph = experimental_digraph(map_massive, recon_weights, all_units_positions)
-    for recon in recon_s:
-        recon.link_to_graph = recon_graph
+    for unit in gr_force_s:
+        if unit.type_unit == 'recon':
+            unit.link_to_graph = recon_graph
 
 
-def create_infantry_squad(map_massive, screen, settings_obj, recon_s, all_units_positions):
+def create_infantry_squad(map_massive, screen, settings_obj, gr_force_s, all_units_positions):
     inf_weights = settings_obj.weights_inf
     for yx in infantry_positions:
-        y = yx[0] * settings_obj.w_and_h_sprite_map  # из-за того, что размер 48X54
+        y = yx[0] * settings_obj.w_and_h_sprite_map
         x = yx[1] * settings_obj.w_and_h_sprite_map
         new_inf = Inf(x, y, settings_obj, screen)
         all_units_positions[(yx[0], yx[1])] = new_inf  # добавление в общий словарь
-        recon_s.add(new_inf)
+        gr_force_s.add(new_inf)
     inf_graph = experimental_digraph(map_massive, inf_weights, all_units_positions)
-    for inf in recon_s:
-        inf.link_to_graph = inf_graph
+    for unit in gr_force_s:
+        if unit.type_unit == 'infantry':
+            unit.link_to_graph = inf_graph
 
 
+def create_helicopter_squad(map_massive, screen, settings_obj, heli_s, all_heli_s_positions):
+    max_weight = settings_obj.max_value
+    for yx in helicopters_position:
+        y = yx[0] * settings_obj.w_and_h_sprite_map
+        x = yx[1] * settings_obj.w_and_h_sprite_map
+        new_heli = Helicopter(x, y, settings_obj, screen)
+        all_heli_s_positions[(yx[0], yx[1])] = new_heli
+        heli_s.add(new_heli)
+    heli_graph = massive_to_graph_to_helicopter(map_massive, max_weight, all_heli_s_positions)
+    for heli in heli_s:
+        heli.link_to_graph = heli_graph
 
 
-def update_screen(screen, map_elements, ramka_obj, path_s, recon_s):
+def update_screen(screen, map_elements, ramka_obj, path_s, recon_s, heli_s):
     #for map_elem in map_elements.sprites():
         #map_elem.draw_map()
     # path_s.draw(screen)
@@ -181,6 +196,8 @@ def update_screen(screen, map_elements, ramka_obj, path_s, recon_s):
     for path in path_s.sprites():
         path.draw_path()
     for unit in recon_s.sprites():
+        unit.draw_gr_forc()
+    for unit in heli_s.sprites():
         unit.draw_gr_forc()
 
     ramka_obj.draw_ramka()

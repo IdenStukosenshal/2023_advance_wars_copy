@@ -8,3 +8,5 @@ class Recon(GroundForces, Sprite):
         super().__init__(x, y, settings_obj, screen)  # передача аргументов в конструктор надкласса = GroundForces.__init__(self, ...)
         self.image = pygame.image.load("assets/rec2_64.png")
         self.path_points = settings_obj.recon_points
+
+        self.type_unit = 'recon'

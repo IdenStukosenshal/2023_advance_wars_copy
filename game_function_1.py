@@ -45,6 +45,7 @@ def check_events(screen, settings_obj, ramka_obj, path_s, map_massive):
 
 def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_massive):
     global unit_object, all_units_positions, chang_path_global, flag
+
     if event.key == pygame.K_SPACE:
         ramka_koord = ramka_obj.get_koordinate()
 
@@ -55,23 +56,74 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_ma
             if unit.get_u_koordinate() not in all_units_positions.keys():  #
                 flag = False
 
-        if ramka_koord in all_units_positions.keys() and chang_path_global is False and flag:
+        if ramka_koord in all_units_positions.keys() and ramka_koord in all_heli_s_positions.keys() and chang_path_global is False and flag:
+            """если выбрана точка, на которой наземный юнит и воздушный одновременно"""
+            if unit_object is False:  # только на старте
+                print("""По умолчанию первый - наземный""")
+                unit_object = all_units_positions[ramka_obj.get_koordinate()]  # получить ссылку на объект юнита
+                unit_object = select__forces(screen, settings_obj, unit_object, ramka_koord, path_s)
+            elif unit_object.type_unit == settings_obj.helicopter_type:
+                print("был вертолёт, теперь другой тип")
+                print("первый выбор")
+                unit_object = all_units_positions[ramka_obj.get_koordinate()]  # получить ссылку на объект юнита
+                unit_object = select__forces(screen, settings_obj, unit_object, ramka_koord, path_s)
+            elif unit_object.type_unit != settings_obj.helicopter_type:
+                print(" был наземный юнит, теперь вертолёт")
+                print("первый выбор")
+                unit_object = all_heli_s_positions[ramka_obj.get_koordinate()]  # получить ссылку на объект юнита
+                unit_object = select__forces(screen, settings_obj, unit_object, ramka_koord, path_s)
+
+            chang_path_global = True  # изменяем вручную, потому что могут быть многократные нажатия выбора
+
+        elif ramka_koord in all_units_positions.keys() and chang_path_global is False and flag:
+            print("""если выбрана точка, на которой наземный юнит""")
             unit_object = all_units_positions[ramka_obj.get_koordinate()]  # получить ссылку на объект юнита
             push_the_lever()
-            path_line = PathElement(screen, settings_obj, ramka_koord)  # создали объект пути
-            path_s.add(path_line)  # добавили в группу
-            allowed_obl = get_allowed_oblast(unit_object, ramka_koord)  # получаем разрешённую область
-            path_line.set_allowed_obl(allowed_obl)  # назначена разрешённая область
-            unit_object.link_to_path = path_line  # сохраняем объект пути в экземпляре передвигаемого юнита
+            unit_object = select__forces(screen, settings_obj, unit_object, ramka_koord, path_s)
+
+        elif ramka_koord in all_heli_s_positions.keys() and chang_path_global is False and flag:
+            print("""если выбрана точка, на которой воздушный юнит""", all_heli_s_positions, "позиции")
+            unit_object = all_heli_s_positions[ramka_obj.get_koordinate()]  # получить ссылку на объект юнита
+            push_the_lever()
+            unit_object = select__forces(screen, settings_obj, unit_object, ramka_koord, path_s)
+
+        elif chang_path_global and len(unit_object.link_to_path.get_list_path()) == 1\
+               and ramka_koord in all_units_positions.keys() and ramka_koord in all_heli_s_positions.keys():
+            if unit_object.type_unit == settings_obj.helicopter_type:
+                del unit_object.link_to_path
+                for path in path_s.copy():
+                    path_s.remove(path)
+                print("был вертолёт, теперь другой тип")
+                unit_object = all_units_positions[ramka_obj.get_koordinate()]  # получить ссылку на объект юнита
+                unit_object = select__forces(screen, settings_obj, unit_object, ramka_koord, path_s)
+
+            elif unit_object.type_unit != settings_obj.helicopter_type:
+                del unit_object.link_to_path
+                for path in path_s.copy():
+                    path_s.remove(path)
+                print(" был наземный юнит, теперь вертолёт")
+                unit_object = all_heli_s_positions[ramka_obj.get_koordinate()]  # получить ссылку на объект юнита
+                unit_object = select__forces(screen, settings_obj, unit_object, ramka_koord, path_s)
+            chang_path_global = True  # изменяем вручную, потому что могут быть многократные нажатия выбора
+
+        elif chang_path_global and len(unit_object.link_to_path.get_list_path()) == 1:
+            """Если в списке только старт - ничего не делать"""
+            print("сработало ничего не делание =(")
+            pass
 
         elif chang_path_global:
             # окончательное назначение пути
             push_the_lever()
             path_u = unit_object.link_to_path.get_list_path()  # список кортежей, [(y,x), (y,x)]
             unit_object.set_unit_path(path_u)  # присваиваем юниту его путь
-            all_units_positions[path_u[-1]] = unit_object  # сохраняем будущую позицию и юнита
-            graph_redacting(unit_object.get_u_koordinate(), settings_obj, map_massive, all_units_positions)
-            # редактируем рёбра к стартовой и к конечной точке
+
+            if unit_object.type_unit != settings_obj.helicopter_type:
+                all_units_positions[path_u[-1]] = unit_object  # сохраняем будущую позицию и юнита
+                graph_redacting(unit_object.get_u_koordinate(), settings_obj, map_massive, all_units_positions)
+                # редактируем рёбра к стартовой и к конечной точке
+            elif unit_object.type_unit == settings_obj.helicopter_type:
+                all_heli_s_positions[path_u[-1]] = unit_object  # сохраняем будущую позицию и юнита
+                graph_redacting(unit_object.get_u_koordinate(), settings_obj, map_massive, all_heli_s_positions)
 
             del unit_object.link_to_path
             for path in path_s.copy():
@@ -80,24 +132,28 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_ma
     if event.key == pygame.K_RIGHT:
         if chang_path_global:
             m_p.moving_right_in_oblast(ramka_obj, unit_object, unit_object.link_to_path)
+
         else:
             ramka_obj.move_right = True
 
     if event.key == pygame.K_LEFT:
         if chang_path_global:
             m_p.moving_left_in_oblast(ramka_obj, unit_object, unit_object.link_to_path)
+
         else:
             ramka_obj.move_left = True
 
     if event.key == pygame.K_UP:
         if chang_path_global:
             m_p.moving_up_in_oblast(ramka_obj,  unit_object, unit_object.link_to_path)
+
         else:
             ramka_obj.move_up = True
 
     if event.key == pygame.K_DOWN:
         if chang_path_global:
             m_p.moving_down_in_oblast(ramka_obj,  unit_object, unit_object.link_to_path)
+
         else:
             ramka_obj.move_down = True
 
@@ -120,14 +176,21 @@ def check_key_up_events(event, ramka_obj, ):
         ramka_obj.move_down = False
 
 
+def select__forces(screen, settings_obj, unit_object, ramka_koord, path_s):
+    path_line = PathElement(screen, settings_obj, ramka_koord)  # создали объект пути
+    path_s.add(path_line)  # добавили в группу
+    allowed_obl = get_allowed_oblast(unit_object, ramka_koord)  # получаем разрешённую область
+    path_line.set_allowed_obl(allowed_obl)  # назначена разрешённая область
+    unit_object.link_to_path = path_line  # сохраняем объект пути в экземпляре передвигаемого юнита
+    return unit_object
+
+
 def create_map(map_massive, settings_obj, screen, map_elements):
     """Получает массив карты
     Для каждого элемента вычисляется его координаты(исходя из размера спрайта).
     Координаты, элемент массива, объект screen передаются в конструктор класса MapElement
-
     каждый элемент добавляется в группу
     """
-
     for i in range(len(map_massive)):
         for j in range(len(map_massive[0])):
             x = j * settings_obj.w_and_h_sprite_map
@@ -140,10 +203,9 @@ def create_map(map_massive, settings_obj, screen, map_elements):
 def create_my_army(map_massive, screen, settings_obj, gr_force_s, heli_s):
     global all_units_positions, all_heli_s_positions
 
-    all_units_positions = create_recon_squad( screen, settings_obj, gr_force_s, all_units_positions)
-    temp_d = create_infantry_squad( screen, settings_obj, gr_force_s, all_units_positions)
-    all_units_positions |= temp_d  # сложение словарей
-
+    create_recon_squad( screen, settings_obj, gr_force_s, all_units_positions)
+    create_infantry_squad( screen, settings_obj, gr_force_s, all_units_positions)
+    #print('список позиций ground_forces', units_positions)
     create_helicopter_squad(map_massive, screen, settings_obj, heli_s, all_heli_s_positions)
 
     preparing_graph(map_massive, settings_obj, all_units_positions, gr_force_s)
@@ -157,24 +219,22 @@ def create_recon_squad(screen, settings_obj, gr_force_s, all_units_positions):
         new_rec = Recon(x, y, settings_obj, screen)
         all_units_positions[(yx[0], yx[1])] = new_rec  # добавление в общий словарь
         gr_force_s.add(new_rec)
-    return all_units_positions
 
 
 def create_infantry_squad(screen, settings_obj, gr_force_s, all_units_positions):
-
     for yx in infantry_positions:
         y = yx[0] * settings_obj.w_and_h_sprite_map
         x = yx[1] * settings_obj.w_and_h_sprite_map
         new_inf = Inf(x, y, settings_obj, screen)
         all_units_positions[(yx[0], yx[1])] = new_inf  # добавление в общий словарь
         gr_force_s.add(new_inf)
-    return all_units_positions
 
 
 def preparing_graph(map_massive, settings_obj, all_units_positions, gr_force_s):
     """
-    после добавления позиций всех юнитов в словарь создаёт граф
-     и присваивает его всем типам юнитов
+    после добавления позиций всех юнитов в словарь
+     создаёт графы для каждого типа юнитов
+
     """
     inf_weights = settings_obj.weights_inf
     recon_weights = settings_obj.weights_track

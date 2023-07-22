@@ -56,7 +56,7 @@ def experimental_digraph(massive, weights, all_units_positions):
 
       Объекты одного класса будут иметь ссылку на один и тот же граф."""
 
-    print("Экспериментальный Граф создан")
+    print("Граф для ground_forces создан")
     g = nx.DiGraph()
     edges = []
     len_massive = len(massive)
@@ -114,7 +114,7 @@ def peres4et_puti(ramka_obj, unit_object, link_to_path):
 
     else:
         path_list = nx.astar_path(unit_object.link_to_graph, start, ramka_obj.get_koordinate())  # алгоритм A*
-        # A* может принимать эвристическую функцию для ускорения поиска пути или хотябы для того, чтобы сделать путь более естественным(более прямым)
+        # A* может принимать эвристическую функцию для ускорения поиска пути или хотя бы для того, чтобы сделать путь более естественным(более прямым)
         link_to_path.set_list_path(path_list)
 
     def len_path(link_t_pat, ):
@@ -123,10 +123,10 @@ def peres4et_puti(ramka_obj, unit_object, link_to_path):
         end = p_list[-1]
         return a_dict[end]
     count_points = len_path(link_to_path)
-    print(f"будет израсходованно {count_points} очков из {unit_object.path_points} на пути: {link_to_path.get_list_path()}")
+    #print(f"будет израсходованно {count_points} очков из {unit_object.path_points} на пути: {link_to_path.get_list_path()}")
 
 
-def graph_redacting(start_point, settings_obj, massive, all_units_positions):
+def graph_redacting(start_point, settings_obj, massive, unit_positions,):
     """изменяет граф в соответствии с изменяемыми координатами юнитов,
     Нужно вызывать эту функцию при каждом перемещении юнита,
     все рёбра, связанные со стартовой и конечной точкой
@@ -134,31 +134,33 @@ def graph_redacting(start_point, settings_obj, massive, all_units_positions):
     + Возможно каким-то непонятным способом образуется 9-ое ребро из задействованной точки,
     проверить
     """
-    unit_ = all_units_positions[start_point]
-    start_point = unit_.get_unit_path()[0]
-    end_point = unit_.get_unit_path()[-1]
+    unit = unit_positions[start_point]
+    start_point = unit.get_unit_path()[0]
+    end_point = unit.get_unit_path()[-1]
 
     if start_point != end_point:  # только в этом случае удаляем старт, поскольку сохранение произошло до этого
-        all_units_positions.pop(start_point)
+        unit_positions.pop(start_point)  # УСТАРЕЛО, теперь выбор той же точки не доступен
     # изменяем графы для всех типов юнитов в соответствии с их весами
 
-    u, gr = None, None
-    for type_unit in settings_obj.list_all_types:  # итераций по числу типов, пока всего 3
+    for current_type in settings_obj.list_all_types:  # итераций по числу типов, пока всего 3
+        for unit in unit_positions.values():  # изменение графа у всех юнитов чтобы не осталось персональной копии
+            if unit.type_unit == current_type:  # только для соответствующего типа
+                current_graph = unit.link_to_graph
 
-        for u in all_units_positions.values():
-            if u.type_unit == type_unit:  # находим первый юнит нужного типа
-                gr = u.link_to_graph  # берём ссылку на граф и прерываем цикл
-                break
-        weight = settings_obj.all_weights[type_unit]  # словарь self.all_weights = {'infantry': self.weights_inf ...}
-        max_value = weight['inaccessible']
-        edges = restore_weights(gr, massive, weight, start_point)
-        gr.add_weighted_edges_from(edges)
-        edges = end_point_weighting(gr, max_value, end_point)
-        gr.add_weighted_edges_from(edges)
+                weight = settings_obj.all_weights[current_type]  # словарь self.all_weights = {'infantry': self.weights_inf ...}
+                max_value = weight['inaccessible']
 
-        for unit in all_units_positions.values():  # изменение графа у всех юнитов чтобы не осталось персональной копии
-            if unit.type_unit == type_unit:  # только для соответствующего типа
-                unit.link_to_graph = gr
+                edges = restore_weights(current_graph, massive, weight, start_point)
+                current_graph.add_weighted_edges_from(edges)
+
+                edges = end_point_weighting(current_graph, max_value, end_point)
+                current_graph.add_weighted_edges_from(edges)
+
+                unit.link_to_graph = current_graph  # присвоение изменённого графа
+
+        """Изменяем граф только у юнитов одного словаря, в котором текущий юнит,
+         поскольку юниты из разных словарей могут находиться на одной точке и не влияют друг на друга"""
+
 
 
 def restore_weights(graph, massive, weights, start_point):
@@ -192,12 +194,12 @@ def end_point_weighting(graph, max_value, end_point):
 import algorithmx
 from algorithmx.networkx import add_graph
 
-all_units_positions = [(2, 3), (4, 5)]
+units_positions = [(2, 3), (4, 5)]
 file_name1 = "map_tests.txt"
 file_name2 = "map_1.txt"
 map_massive = file_map_to_massive(file_name2)
 weights_track_tests = {'#': 1.5, 'd': 1, 'f': 2, '@': 90, 'v': 90, 't': 1.125, 'inaccessible': 90}
-graph = experimental_digraph(map_massive, weights_track_tests, all_units_positions)
+graph = experimental_digraph(map_massive, weights_track_tests, units_positions)
 
 
 def draw_in_browser(graph):

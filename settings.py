@@ -22,7 +22,8 @@ class Settings:
         self.helicopter_type = 'helicopter'
 
         self.list_all_types = [self.infantry_type, self.recon_type, self.helicopter_type]
-        self.all_weights = {'recon': self.weights_track, 'infantry': self.weights_inf, 'helicopter': self.weights_heli}
+        self.all_weights = {self.recon_type: self.weights_track, self.infantry_type: self.weights_inf, self.helicopter_type: self.weights_heli}
+
 
 
 

@@ -85,17 +85,17 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_ma
                and ramka_koord in all_units_positions.keys() and ramka_koord in all_heli_s_positions.keys():
             """Ещё раз выбрана точка, занятая юнитами обоих типов"""
             if unit_object.type_unit == settings_obj.helicopter_type:
-                del unit_object.link_to_path
-                for path in path_s.copy():
-                    path_s.remove(path)
+                #for path in path_s.copy():
+                    #path_s.remove(path)
+                path_s.empty()
                 print("Переключение на наземный тип")
                 unit_object = all_units_positions[ramka_obj.get_koordinate()]  # получить ссылку на объект юнита
                 unit_object = select__forces(screen, settings_obj, unit_object, ramka_koord, path_s)
 
             elif unit_object.type_unit != settings_obj.helicopter_type:
-                del unit_object.link_to_path
-                for path in path_s.copy():
-                    path_s.remove(path)
+                #for path in path_s.copy():
+                    #path_s.remove(path)
+                path_s.empty()
                 print(" Переключение на воздушный тип")
                 unit_object = all_heli_s_positions[ramka_obj.get_koordinate()]  # получить ссылку на объект юнита
                 unit_object = select__forces(screen, settings_obj, unit_object, ramka_koord, path_s)
@@ -120,9 +120,9 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_ma
                 all_heli_s_positions[path_u[-1]] = unit_object  # сохраняем будущую позицию и юнита
                 graph_redacting(unit_object.get_u_koordinate(), settings_obj, map_massive, all_heli_s_positions)
 
-            del unit_object.link_to_path
-            for path in path_s.copy():
-                path_s.remove(path)
+            #for path in path_s.copy():
+                #path_s.remove(path)
+            path_s.empty()
             unit_object = False
 
     if event.key == pygame.K_RIGHT:
@@ -156,9 +156,10 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_ma
     if event.key ==pygame.K_BACKSPACE:
         if chang_path_global:  # вроде работает, пока багов не замечено
             push_the_lever()
-            del unit_object.link_to_path
-            for path in path_s.copy():
-                path_s.remove(path)
+            #for path in path_s.copy():
+                #path_s.remove(path)
+            path_s.empty()
+        unit_object = False
 
 
 def check_key_up_events(event, ramka_obj, ):

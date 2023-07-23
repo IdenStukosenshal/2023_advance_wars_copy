@@ -47,6 +47,13 @@ class PathElement(Sprite):
         for x, y in koord_list:
             pygame.draw.rect(self.screen, (255, 255, 255), (x+3, y+3, self.spr_rzm-6, self.spr_rzm-6), 1)
 
+    def __drawing_oblast2(self, koord_list):
+        image = pygame.Surface((self.spr_rzm, self.spr_rzm))
+        image.fill((255, 255, 255))
+        image.set_alpha(50)
+        for x, y in koord_list:
+            self.screen.blit(image, (x, y))
+
     def set_list_path(self, list_path):
         self.list_path = list_path
 

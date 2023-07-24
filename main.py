@@ -4,7 +4,7 @@ from pygame.sprite import Group
 from settings import Settings
 import game_function_1
 import map_to_graph
-from ramka import Ramka
+from interface_objects.ramka import Ramka
 
 
 def vidiya_game():
@@ -16,7 +16,7 @@ def vidiya_game():
     clock = pygame.time.Clock()
 
     map_elements = Group()
-    file_name = "map_1.txt"
+    file_name = "map_and_map_elements/map_1.txt"
     map_massive = map_to_graph.file_map_to_massive(file_name)
     game_function_1.create_map(map_massive, settings_obj, screen, map_elements)  # добавляет элементы карты в группу
     ramka_obj = Ramka(64, 64, settings_obj, screen)
@@ -42,8 +42,3 @@ def vidiya_game():
 
 if __name__ == '__main__': # для предотвращения зацикливания импортов
     vidiya_game()
-
-
-"""Управление:
-Перемещение рамки на стрелочки, поставить стартовую точку - SPACE, поставить конечную точку - тоже SPACE .
-После установки стартовой точки можно наблюдать построение путей в зависимости от положения рамки"""

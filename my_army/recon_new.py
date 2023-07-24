@@ -1,6 +1,6 @@
 import pygame
 from pygame.sprite import Sprite
-from ground_forces import GroundForces
+from my_army.ground_forces import GroundForces
 
 
 class Recon(GroundForces, Sprite):

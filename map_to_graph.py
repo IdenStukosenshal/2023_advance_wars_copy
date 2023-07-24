@@ -15,7 +15,8 @@ def file_map_to_massive(file_name):
 
 def massive_to_graph_to_helicopter(map_massive, max_weight, all_helicopters_positions):
     """
-    Для helicopter все веса == 1 кроме занятых точек
+    Создание графа для конкретного класса, веса карты не влияют, поэтому
+    для helicopter все веса == 1 кроме занятых точек
     """
     print("Граф для air_forces создан")
     g = nx.DiGraph()
@@ -89,12 +90,13 @@ def experimental_digraph(massive, weights, all_units_positions):
 def get_allowed_oblast(unit_object, start):
     """Формируем словарь разрешённых для посещения точек с помощью алгоритма Дейкстры
     Добавляем только те, до которых хватит очков перемещения
-    возвращает словарь вида {(6, 6): 6.0, (6, 7): 7.5, ...}"""
+    возвращает словарь вида {(6, 6): 6.0, (6, 7): 7.5, ...}
+    Вызывается 1 раз при выборе юнита"""
     graph = unit_object.link_to_graph
 
     oblast_rez = dict()
 
-    oblast_dict = nx.single_source_dijkstra_path_length(graph, start,)
+    oblast_dict = nx.single_source_dijkstra_path_length(graph, start,)  # алгоритм Дейкстры от точки старта
 
     for node, sum_weight in oblast_dict.items():
         if sum_weight <= unit_object.path_points:
@@ -115,6 +117,7 @@ def peres4et_puti(ramka_obj, unit_object, link_to_path):
     else:
         path_list = nx.astar_path(unit_object.link_to_graph, start, ramka_obj.get_koordinate())  # алгоритм A*
         # A* может принимать эвристическую функцию для ускорения поиска пути или хотя бы для того, чтобы сделать путь более естественным(более прямым)
+        # Похоже сейчас это равносильно алгоритму Дейкстры
         link_to_path.set_list_path(path_list)
 
     def len_path(link_t_pat, ):

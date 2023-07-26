@@ -15,7 +15,7 @@ class Settings:
         self.tank_points = 5
         self.helicopter_points = 6
 
-        self.speed = 16  # пикселей за кадр, должно быть кратно размеру спрайта, иначе не будет точного попадания в координаты
+        self.speed = 32  # пикселей за кадр, должно быть кратно размеру спрайта, иначе не будет точного попадания в координаты
 
         self.infantry_type = 'infantry'
         self.recon_type = 'recon'

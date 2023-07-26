@@ -87,7 +87,7 @@ def experimental_digraph(massive, weights, all_units_positions):
     return g
 
 
-def get_allowed_oblast(unit_object, start):
+def calculate_allowed_oblast(unit_object, start):
     """Формируем словарь разрешённых для посещения точек с помощью алгоритма Дейкстры
     Добавляем только те, до которых хватит очков перемещения
     возвращает словарь вида {(6, 6): 6.0, (6, 7): 7.5, ...}
@@ -104,29 +104,29 @@ def get_allowed_oblast(unit_object, start):
     return oblast_rez
 
 
-def peres4et_puti(ramka_obj, unit_object, link_to_path):
+def peres4et_puti(ramka_obj, unit_object,):
     """Вызывается при каждом перемещении рамки после выбора юнита, присваивает объекту пути
     список пути вида [(0, 1), (1, 2), (1, 3), ...]"""
 
-    start = link_to_path.start_position
+    start = unit_object.link_to_path.start_position
 
     if start == ramka_obj.get_koordinate():
-        link_to_path.set_list_path([start])
+        unit_object.link_to_path.set_list_path([start])
         # это для того, чтобы обнулить путь при возвращении рамки на юнита, иначе остаться на месте не получится
 
     else:
         path_list = nx.astar_path(unit_object.link_to_graph, start, ramka_obj.get_koordinate())  # алгоритм A*
         # A* может принимать эвристическую функцию для ускорения поиска пути или хотя бы для того, чтобы сделать путь более естественным(более прямым)
         # Похоже сейчас это равносильно алгоритму Дейкстры
-        link_to_path.set_list_path(path_list)
+        unit_object.link_to_path.set_list_path(path_list)
 
     def len_path(link_t_pat, ):
         a_dict = link_t_pat.get_allowed_obl()
         p_list = link_t_pat.get_list_path()
         end = p_list[-1]
         return a_dict[end]
-    count_points = len_path(link_to_path)
-    print(f"будет израсходованно {count_points} очков из {unit_object.path_points} на пути: {link_to_path.get_list_path()}, тип юнита:{unit_object.type_unit}")
+    count_points = len_path(unit_object.link_to_path)
+    print(f"будет израсходованно {count_points} очков из {unit_object.path_points} на пути: {unit_object.link_to_path.get_list_path()}, тип юнита:{unit_object.type_unit}")
 
 
 def graph_redacting(start_point, settings_obj, massive, unit_positions,):

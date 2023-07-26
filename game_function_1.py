@@ -3,7 +3,8 @@ import sys
 
 from interface_objects.path_element import PathElement
 from map_and_map_elements.map_element import MapElement
-from map_to_graph import graph_redacting, get_allowed_oblast
+import map_to_graph as mp_t_g
+#from map_to_graph import graph_redacting, get_allowed_oblast
 
 import create_my_and_enemy_army as create_armys
 import moving_processing as m_p
@@ -38,7 +39,7 @@ def check_events(screen, settings_obj, ramka_obj, path_s, map_massive):
 
 
 def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_massive):
-    global unit_object, all_units_positions, chang_path_global, flag
+    global unit_object, all_units_positions, all_heli_s_positions, chang_path_global, flag
 
     if event.key == pygame.K_SPACE:
         ramka_koord = ramka_obj.get_koordinate()
@@ -104,40 +105,40 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_ma
 
             if unit_object.type_unit != settings_obj.helicopter_type:
                 all_units_positions[path_u[-1]] = unit_object  # сохраняем будущую позицию и юнита
-                graph_redacting(unit_object.get_u_koordinate(), settings_obj, map_massive, all_units_positions)
+                mp_t_g.graph_redacting(unit_object.get_u_koordinate(), settings_obj, map_massive, all_units_positions)
                 # редактируем рёбра к стартовой и к конечной точке
             elif unit_object.type_unit == settings_obj.helicopter_type:
                 all_heli_s_positions[path_u[-1]] = unit_object  # сохраняем будущую позицию и юнита
-                graph_redacting(unit_object.get_u_koordinate(), settings_obj, map_massive, all_heli_s_positions)
+                mp_t_g.graph_redacting(unit_object.get_u_koordinate(), settings_obj, map_massive, all_heli_s_positions)
                 # редактируем рёбра к стартовой и к конечной точке
             path_s.empty()   # очищение группы, чтобы удалить с экрана старую область
             unit_object = False
 
     if event.key == pygame.K_RIGHT:
         if chang_path_global:
-            m_p.moving_right_in_oblast(ramka_obj, unit_object, unit_object.link_to_path)
+            m_p.moving_right_in_oblast(ramka_obj, unit_object, )
         else:
             ramka_obj.move_right = True
 
     if event.key == pygame.K_LEFT:
         if chang_path_global:
-            m_p.moving_left_in_oblast(ramka_obj, unit_object, unit_object.link_to_path)
+            m_p.moving_left_in_oblast(ramka_obj, unit_object,)
         else:
             ramka_obj.move_left = True
 
     if event.key == pygame.K_UP:
         if chang_path_global:
-            m_p.moving_up_in_oblast(ramka_obj,  unit_object, unit_object.link_to_path)
+            m_p.moving_up_in_oblast(ramka_obj,  unit_object,)
         else:
             ramka_obj.move_up = True
 
     if event.key == pygame.K_DOWN:
         if chang_path_global:
-            m_p.moving_down_in_oblast(ramka_obj,  unit_object, unit_object.link_to_path)
+            m_p.moving_down_in_oblast(ramka_obj,  unit_object,)
         else:
             ramka_obj.move_down = True
 
-    if event.key ==pygame.K_BACKSPACE:
+    if event.key == pygame.K_BACKSPACE:
         if chang_path_global:  # вроде работает, пока багов не замечено
             push_the_lever()
             path_s.empty()
@@ -161,7 +162,7 @@ def create_path_for_unit(screen, settings_obj, unit_object, ramka_koord, path_s)
      и возвращает юнит"""
     path_line = PathElement(screen, settings_obj, ramka_koord)  # создали объект пути
     path_s.add(path_line)  # добавили в группу
-    allowed_obl = get_allowed_oblast(unit_object, ramka_koord)  # получаем разрешённую область
+    allowed_obl = mp_t_g.calculate_allowed_oblast(unit_object, ramka_koord)  # получаем разрешённую область
     path_line.set_allowed_obl(allowed_obl)  # назначена разрешённая область
     unit_object.link_to_path = path_line  # сохраняем объект пути в экземпляре передвигаемого юнита
     return unit_object

@@ -1,5 +1,2 @@
-"""
-https://www.nongnu.org/pygsear/doc/api_html/public/pygame.sprite.Group-class.html
+import pygame.examples.aliens
 
-https://www.pygame.org/docs/ref/sprite.html     ЧЕРЕЗ VPN
-"""

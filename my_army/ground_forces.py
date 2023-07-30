@@ -29,7 +29,6 @@ class GroundForces(Sprite):
         self.l = 0
         self.r = 1
         self.flag = 0
-
         self.type_unit = None
 
     def draw_gr_forc(self):

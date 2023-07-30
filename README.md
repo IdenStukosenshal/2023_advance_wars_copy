@@ -21,6 +21,7 @@ Requirements:
 * Pygame
 * Networkx
 * algorithmx Для визуализации графа в браузере, не обязательно
+
     
     Примеры скриншотов Advance wars:
 

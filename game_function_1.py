@@ -1,31 +1,29 @@
 import pygame
 import sys
 
+from enum import Enum
+
 from interface_objects.path_element import PathElement
 from map_and_map_elements.map_element import MapElement
 import map_to_graph as mp_t_g
-#from map_to_graph import graph_redacting, get_allowed_oblast
 
 import create_my_and_enemy_army as create_armys
 import moving_processing as m_p
 
-unit_object = False
-chang_path_global = False
+unit_object = None
 
 all_units_positions = dict()
 all_heli_s_positions = dict()
 
-flag = True
+
+class ActionState(Enum):
+    """Для замены всех флагов"""
+    Free_move = 0  # перемещение рамки когда ничего не выбрано
+    Selected = 1
+    On_the_move = 2  # ограничения на действия, когда юнит в пути
 
 
-def push_the_lever():
-    """Эта функция вызывается при нажатии кнопки действия
-    переключает флаг для управления перемещением и построением пути"""
-    global chang_path_global
-    if chang_path_global:
-        chang_path_global = False
-    else:
-        chang_path_global = True
+flag_state = ActionState.Free_move
 
 
 def check_events(screen, settings_obj, ramka_obj, path_s, map_massive):
@@ -39,44 +37,42 @@ def check_events(screen, settings_obj, ramka_obj, path_s, map_massive):
 
 
 def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_massive):
-    global unit_object, all_units_positions, all_heli_s_positions, chang_path_global, flag
+    global unit_object, all_units_positions, all_heli_s_positions, flag_state
+    # После движения старый юнит остаётся доступным по ссылке до выбора нового
+    if flag_state is ActionState.On_the_move:
+        if unit_object.get_u_koordinate() in all_units_positions.keys() and unit_object.type_unit != settings_obj.helicopter_type:
+            flag_state = ActionState.Free_move
+        elif unit_object.get_u_koordinate() in all_heli_s_positions.keys() and unit_object.type_unit == settings_obj.helicopter_type:
+            flag_state = ActionState.Free_move
+        else:
+            pass
 
-    if event.key == pygame.K_SPACE:
+    if event.key == pygame.K_SPACE and flag_state is not ActionState.On_the_move:
         ramka_koord = ramka_obj.get_koordinate()
 
-        """Костыль(flag) убирает вылет когда юнит находится в пути,
-         но выбирается его пункт назначения.
-         (нужно быстро нажимать на кнопку)"""
-        flag = True
-        for unit in all_units_positions.values():
-            if unit.get_u_koordinate() not in all_units_positions.keys():  #
-                flag = False
-        for unit in all_heli_s_positions.values():
-            if unit.get_u_koordinate() not in all_heli_s_positions.keys():  #
-                flag = False
-
-        if ramka_koord in all_units_positions.keys() and ramka_koord in all_heli_s_positions.keys() and chang_path_global is False and flag:
+        if ramka_koord in all_units_positions.keys() and ramka_koord in all_heli_s_positions.keys()\
+                and flag_state is ActionState.Free_move:
             """если выбрана точка, на которой наземный юнит и воздушный одновременно"""
-            if unit_object is False:  # только на старте
-                print("""По умолчанию первый - наземный""")
-                unit_object = all_units_positions[ramka_obj.get_koordinate()]  # получить ссылку на объект юнита
-                unit_object = create_path_for_unit(screen, settings_obj, unit_object, ramka_koord, path_s)
+            print("""По умолчанию первый - наземный""")
+            unit_object = all_units_positions[ramka_obj.get_koordinate()]  # получить ссылку на объект юнита
+            unit_object = create_path_for_unit(screen, settings_obj, unit_object, ramka_koord, path_s)
+            flag_state = ActionState.Selected
 
-            chang_path_global = True  # Пока изменяем вручную
-
-        elif ramka_koord in all_units_positions.keys() and chang_path_global is False and flag:
+        elif ramka_koord in all_units_positions.keys() and flag_state is ActionState.Free_move:
             print("""Выбран наземный юнит""")
             unit_object = all_units_positions[ramka_obj.get_koordinate()]  # получить ссылку на объект юнита
-            push_the_lever()
+            flag_state = ActionState.Selected
             unit_object = create_path_for_unit(screen, settings_obj, unit_object, ramka_koord, path_s)
 
-        elif ramka_koord in all_heli_s_positions.keys() and chang_path_global is False and flag:
+        elif ramka_koord in all_heli_s_positions.keys() and flag_state is ActionState.Free_move:
             print("""Выбран воздушный юнит""")
             unit_object = all_heli_s_positions[ramka_obj.get_koordinate()]  # получить ссылку на объект юнита
-            push_the_lever()
+            flag_state = ActionState.Selected
             unit_object = create_path_for_unit(screen, settings_obj, unit_object, ramka_koord, path_s)
 
-        elif chang_path_global and len(unit_object.link_to_path.get_list_path()) == 1\
+
+
+        if flag_state is ActionState.Selected and len(unit_object.link_to_path.get_list_path()) == 1\
                and ramka_koord in all_units_positions.keys() and ramka_koord in all_heli_s_positions.keys():
             """Ещё раз выбрана точка, занятая юнитами обоих типов"""
             if unit_object.type_unit == settings_obj.helicopter_type:
@@ -90,16 +86,18 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_ma
                 print(" Переключение на воздушный тип")
                 unit_object = all_heli_s_positions[ramka_obj.get_koordinate()]  # получить ссылку на объект юнита
                 unit_object = create_path_for_unit(screen, settings_obj, unit_object, ramka_koord, path_s)
-            chang_path_global = True  # изменяем вручную, потому что могут быть многократные нажатия выбора
+            flag_state = ActionState.Selected  # изменяем вручную, потому что могут быть многократные нажатия выбора
 
-        elif chang_path_global and len(unit_object.link_to_path.get_list_path()) == 1:
-            """Если в списке только старт - ничего не делать"""
-            print("сработало ничего не делание")
+        elif flag_state is ActionState.Selected and len(unit_object.link_to_path.get_list_path()) == 1:
+            """Если в списке только старт - ничего не делать
+            Срабатывает при первом выборе юнита или если многократно нажимать кнопку на одном и том же юните"""
             pass
 
-        elif chang_path_global:
+
+
+        if flag_state is ActionState.Selected and len(unit_object.link_to_path.get_list_path()) != 1:
             # окончательное назначение пути
-            push_the_lever()
+            flag_state = ActionState.On_the_move
             path_u = unit_object.link_to_path.get_list_path()  # список кортежей, [(y,x), (y,x)]
             unit_object.set_unit_path(path_u)  # присваиваем юниту его путь
 
@@ -112,37 +110,35 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_ma
                 mp_t_g.graph_redacting(unit_object.get_u_koordinate(), settings_obj, map_massive, all_heli_s_positions)
                 # редактируем рёбра к стартовой и к конечной точке
             path_s.empty()   # очищение группы, чтобы удалить с экрана старую область
-            unit_object = False
 
     if event.key == pygame.K_RIGHT:
-        if chang_path_global:
+        if flag_state is ActionState.Selected:
             m_p.moving_right_in_oblast(ramka_obj, unit_object, )
         else:
             ramka_obj.move_right = True
 
     if event.key == pygame.K_LEFT:
-        if chang_path_global:
+        if flag_state is ActionState.Selected:
             m_p.moving_left_in_oblast(ramka_obj, unit_object,)
         else:
             ramka_obj.move_left = True
 
     if event.key == pygame.K_UP:
-        if chang_path_global:
+        if flag_state is ActionState.Selected:
             m_p.moving_up_in_oblast(ramka_obj,  unit_object,)
         else:
             ramka_obj.move_up = True
 
     if event.key == pygame.K_DOWN:
-        if chang_path_global:
+        if flag_state is ActionState.Selected:
             m_p.moving_down_in_oblast(ramka_obj,  unit_object,)
         else:
             ramka_obj.move_down = True
 
     if event.key == pygame.K_BACKSPACE:
-        if chang_path_global:  # вроде работает, пока багов не замечено
-            push_the_lever()
+        if flag_state is ActionState.Selected:
+            flag_state = ActionState.Free_move
             path_s.empty()
-        unit_object = False
 
 
 def check_key_up_events(event, ramka_obj, ):

@@ -118,6 +118,7 @@ def peres4et_puti(ramka_obj, unit_object,):
         path_list = nx.astar_path(unit_object.link_to_graph, start, ramka_obj.get_koordinate())  # алгоритм A*
         # A* может принимать эвристическую функцию для ускорения поиска пути или хотя бы для того, чтобы сделать путь более естественным(более прямым)
         # Похоже сейчас это равносильно алгоритму Дейкстры
+
         unit_object.link_to_path.set_list_path(path_list)
 
     def len_path(link_t_pat, ):

@@ -8,6 +8,8 @@ from interface_objects.ramka import Ramka
 
 
 def vidiya_game():
+    unit_object = None
+
     settings_obj = Settings()
 
     pygame.init()
@@ -32,7 +34,7 @@ def vidiya_game():
         clock.tick(settings_obj.fps)
         ramka_obj.update()
 
-        game_function_1.check_events(screen, settings_obj, ramka_obj, path_s, map_massive)
+        unit_object = game_function_1.check_events(screen, settings_obj, ramka_obj, path_s, map_massive, unit_object)
         gr_force_s.update()
         heli_s.update()
         game_function_1.update_screen(screen, map_elements, ramka_obj, path_s, gr_force_s, heli_s)

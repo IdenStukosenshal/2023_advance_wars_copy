@@ -120,6 +120,7 @@ def peres4et_puti(ramka_obj, unit_object,):
         # Похоже сейчас это равносильно алгоритму Дейкстры
 
         unit_object.link_to_path.set_list_path(path_list)
+        # получаем по ссылке объект пути и изменяем его
 
     def len_path(link_t_pat, ):
         a_dict = link_t_pat.get_allowed_obl()
@@ -127,7 +128,7 @@ def peres4et_puti(ramka_obj, unit_object,):
         end = p_list[-1]
         return a_dict[end]
     count_points = len_path(unit_object.link_to_path)
-    print(f"будет израсходованно {count_points} очков из {unit_object.path_points} на пути: {unit_object.link_to_path.get_list_path()}, тип юнита:{unit_object.type_unit}")
+    #print(f"будет израсходованно {count_points} очков из {unit_object.path_points} на пути: {unit_object.link_to_path.get_list_path()}, тип юнита:{unit_object.type_unit}")
 
 
 def graph_redacting(start_point, settings_obj, massive, unit_positions,):

@@ -1,7 +1,6 @@
-import pygame
 import sys
-
 from enum import Enum
+import pygame
 
 from interface_objects.path_element import PathElement
 from map_and_map_elements.map_element import MapElement
@@ -10,7 +9,6 @@ import map_to_graph as mp_t_g
 import create_my_and_enemy_army as create_armys
 import moving_processing as m_p
 
-unit_object = None
 
 all_units_positions = dict()
 all_heli_s_positions = dict()
@@ -26,18 +24,19 @@ class ActionState(Enum):
 flag_state = ActionState.Free_move
 
 
-def check_events(screen, settings_obj, ramka_obj, path_s, map_massive):
+def check_events(screen, settings_obj, ramka_obj, path_s, map_massive, unit_object):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
         elif event.type == pygame.KEYDOWN:
-            check_key_down_events(screen, settings_obj, event, ramka_obj, path_s,  map_massive)
+            unit_object = check_key_down_events(screen, settings_obj, event, ramka_obj, path_s,  map_massive, unit_object)
         elif event.type == pygame.KEYUP:
             check_key_up_events(event, ramka_obj, )
+    return unit_object
 
 
-def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_massive):
-    global unit_object, all_units_positions, all_heli_s_positions, flag_state
+def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_massive, unit_object):
+    global all_units_positions, all_heli_s_positions, flag_state
     # После движения старый юнит остаётся доступным по ссылке до выбора нового
     if flag_state is ActionState.On_the_move:
         if unit_object.get_u_koordinate() in all_units_positions.keys() and unit_object.type_unit != settings_obj.helicopter_type:
@@ -57,18 +56,21 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_ma
             unit_object = all_units_positions[ramka_obj.get_koordinate()]  # получить ссылку на объект юнита
             unit_object = create_path_for_unit(screen, settings_obj, unit_object, ramka_koord, path_s)
             flag_state = ActionState.Selected
+            return unit_object
 
         elif ramka_koord in all_units_positions.keys() and flag_state is ActionState.Free_move:
             print("""Выбран наземный юнит""")
             unit_object = all_units_positions[ramka_obj.get_koordinate()]  # получить ссылку на объект юнита
             flag_state = ActionState.Selected
             unit_object = create_path_for_unit(screen, settings_obj, unit_object, ramka_koord, path_s)
+            return unit_object
 
         elif ramka_koord in all_heli_s_positions.keys() and flag_state is ActionState.Free_move:
             print("""Выбран воздушный юнит""")
             unit_object = all_heli_s_positions[ramka_obj.get_koordinate()]  # получить ссылку на объект юнита
             flag_state = ActionState.Selected
             unit_object = create_path_for_unit(screen, settings_obj, unit_object, ramka_koord, path_s)
+            return unit_object
 
 
 
@@ -112,6 +114,8 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_ma
             path_s.empty()   # очищение группы, чтобы удалить с экрана старую область
 
     if event.key == pygame.K_RIGHT:
+        """Внутри каждого вызова m_p.moving изменяется объект path_element по ссылке, сохранённой в unit_obj
+        Поскольку это изменяемый объект, возвращать ничего не нужно"""
         if flag_state is ActionState.Selected:
             m_p.moving_right_in_oblast(ramka_obj, unit_object, )
         else:
@@ -140,6 +144,8 @@ def check_key_down_events(screen, settings_obj, event, ramka_obj, path_s, map_ma
             flag_state = ActionState.Free_move
             path_s.empty()
 
+    return unit_object
+
 
 def check_key_up_events(event, ramka_obj, ):
     """Обработка поднимания клавиши, пока не используется"""
@@ -154,8 +160,8 @@ def check_key_up_events(event, ramka_obj, ):
 
 
 def create_path_for_unit(screen, settings_obj, unit_object, ramka_koord, path_s):
-    """Получает объект юнита, создаёт путь, сохраняет его в объекте юнита
-     и возвращает юнит"""
+    """Получает объект юнита, создаёт путь, добавляет путь в группу и сохраняет ссылку на него в объекте юнита.
+     Возвращает юнит"""
     path_line = PathElement(screen, settings_obj, ramka_koord)  # создали объект пути
     path_s.add(path_line)  # добавили в группу
     allowed_obl = mp_t_g.calculate_allowed_oblast(unit_object, ramka_koord)  # получаем разрешённую область
